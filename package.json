@@ -1,0 +1,41 @@
+{
+  "name": "@joshuacc/recon",
+  "version": "0.1.0",
+  "description": "Gather background information to prompt LLMs",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "typecheck": "tsc --noEmit",
+    "recon": "ts-node src/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joshuacc/recon.git"
+  },
+  "keywords": [
+    "llm",
+    "ai",
+    "chatgpt",
+    "openai",
+    "claude",
+    "anthropic"
+  ],
+  "author": "Joshua Clanton",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/joshuacc/recon/issues"
+  },
+  "homepage": "https://github.com/joshuacc/recon#readme",
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "prettier": "^3.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@types/glob": "^8.1.0",
+    "commander": "^12.0.0",
+    "cosmiconfig": "^9.0.0",
+    "glob": "^10.3.12"
+  }
+}
