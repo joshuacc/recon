@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { Command } from "commander";
 import { gatherInformation } from "./gatherInformation.js";
 import { loadConfig } from "./config.js";
