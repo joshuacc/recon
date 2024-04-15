@@ -6,7 +6,8 @@ Running a simple command like `recon --file ./docs --prompt "What are the addres
 
 ## Installation
 
-This project is not yet published to npm, but will be in the near future.
+- global: `npm install -g @joshuacc/recon`
+- local: `npm install --save-dev @joshuacc/recon`
 
 ## Basic Usage
 
@@ -123,7 +124,6 @@ For full details on the configuration format, see `src/config.ts`.
 
 ## Future features
 
-- Distribution on npm
 - Additional built-in agents
 - Giving custom agents the ability to plug their own flags into the CLI. e.g. `recon --agent:db "SELECT COUNT(*) FROM users"`
 - Improved documentation

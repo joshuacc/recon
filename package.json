@@ -3,11 +3,17 @@
   "version": "0.1.0",
   "description": "Gather background information to prompt LLMs",
   "main": "lib/index.js",
+  "bin": {
+    "recon": "lib/index.js"
+  },
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "typecheck": "tsc --noEmit",
-    "recon": "tsx src/index.ts"
+    "recon": "tsx src/index.ts",
+    "clean": "rimraf lib",
+    "build": "rimraf lib && tsc",
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -28,16 +34,15 @@
   },
   "homepage": "https://github.com/joshuacc/recon#readme",
   "devDependencies": {
+    "@types/glob": "^8.1.0",
     "@types/node": "^20.12.7",
     "prettier": "^3.2.5",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "rimraf": "^5.0.5"
   },
   "dependencies": {
-    "@types/glob": "^8.1.0",
     "clipboardy": "^4.0.0",
     "commander": "^12.0.0",
-    "cosmiconfig": "^9.0.0",
     "glob": "^10.3.12"
   }
 }
