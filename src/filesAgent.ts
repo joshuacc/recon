@@ -3,6 +3,7 @@ import { ReconAgent, GatheredInformation } from "./reconAgent";
 import { readFile, stat } from "fs/promises";
 import { glob } from "glob";
 import path from "path";
+import { defaultExclusions } from "./defaultExclusions";
 
 type FilesAgentOptions = string[];
 
@@ -34,7 +35,7 @@ export class FilesAgent extends ReconAgent<FilesAgentOptions> {
           // If it's a directory, collect all files within it
           const directoryFiles = await glob(
             path.join(fileOrDirPath, "**", "*"),
-            { nodir: true }
+            { nodir: true, ignore: defaultExclusions }
           );
           return directoryFiles;
         } else {
@@ -43,7 +44,10 @@ export class FilesAgent extends ReconAgent<FilesAgentOptions> {
         }
       } catch (error) {
         // If the path is not a file or directory, assume it's a glob pattern
-        const matchedPaths = await glob(fileOrDirPath, { nodir: true });
+        const matchedPaths = await glob(fileOrDirPath, {
+          nodir: true,
+          ignore: defaultExclusions,
+        });
         return matchedPaths;
       }
     });

@@ -6,8 +6,6 @@ export async function gatherInformation(
   agents: ReconAgent<any>[],
   commandConfig: ReconCommand
 ): Promise<string> {
-  console.log("command config", commandConfig);
-
   const gatheredInformation: GatheredInformation[][] = await Promise.all(
     agents.map(async (agent) => {
       const agentName = agent.name;

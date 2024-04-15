@@ -1,15 +1,12 @@
 # recon - Gather background information to prompt LLMs
 
-IMPORTANT: This is a work in progress. The documentation below is aspirational and may not reflect the current state of the project.
-
 LLMs like Claude and ChatGPT can be extremely useful. But gathering up all the background information they need to provide appropriate answers can be painful. That's where `recon` comes in.
 
 Running a simple command like `recon --file ./docs --prompt "What are the addresses for all of our internal servers?" | llm` beats manually looking through everything in the docs folder.
 
 ## Installation
 
-- `npm i -g @joshuacc/recon` to install globally - Probably what most users want
-- `npm i @joshuacc/recon` to use in a specific JS project
+This project is not yet published to npm, but will be in the near future.
 
 ## Basic Usage
 
@@ -21,7 +18,7 @@ The `recon` command will output a text prompt in one of three ways:
 
 - **Clipboard**: If the `--clipboard` flag is provided, the prompt will be copied to your clipboard.
 - **File**: If the `--output` flag is provided, the prompt will be written to the specified file.
-- **Stdout**: If neither `--clipboard` nor `--output` is provided, the prompt will be written to `stdout`. This can be useful for combining with other tools, like [llm](https://llm.datasette.io/en/stable/). Example: `recon --file ./docs --prompt "How do I debug docker problems for this project?" | llm`.
+- **Stdout**: Recon will automatically detect if it is being piped to another command and will output the prompt to stdout in that case. This can be useful for combining with other tools, like [llm](https://llm.datasette.io/en/stable/). Example: `recon --file ./docs --prompt "How do I debug docker problems for this project?" | llm`.
 
 ### Specifying what you want from the LLM (prompt)
 
@@ -89,13 +86,8 @@ If you have a `.recon.config.js` file in your home directory and one in the root
 
 ### Creating your own recon agents
 
-You can create your own recon agents by extending the `ReconAgent` class and implementing the `gather` method. This method should return a promise that resolves with the gathered information. You can then use your custom recon agent with the `--agent` option.
-
+You can create your own recon agents by extending the `ReconAgent` class and implementing the `gather` method. This method should return a promise that resolves with the gathered information.
 More details to come.
-
-Examples to add: 
-- db queries
-- connecting to stripe
 
 ## Configuration format
 
@@ -128,3 +120,10 @@ module.exports = {
 ```
 
 For full details on the configuration format, see `src/config.ts`.
+
+## Future features
+
+- Distribution on npm
+- Additional built-in agents
+- Giving custom agents the ability to plug their own flags into the CLI. e.g. `recon --agent:db "SELECT COUNT(*) FROM users"`
+- Improved documentation
