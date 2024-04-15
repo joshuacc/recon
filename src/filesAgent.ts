@@ -1,63 +1,78 @@
 // src/filesAgent.ts
-import { ReconAgent, GatheredInformation } from './reconAgent';
-import { readFile, stat } from 'fs/promises';
-import { glob } from 'glob';
-import path from 'path';
+import { ReconAgent, GatheredInformation } from "./reconAgent";
+import { readFile, stat } from "fs/promises";
+import { glob } from "glob";
+import path from "path";
 
 type FilesAgentOptions = string[];
 
-export class FilesAgent extends ReconAgent<any> {
-  readonly name = 'files';
-  readonly description = 'Gathers information from files';
+export class FilesAgent extends ReconAgent<FilesAgentOptions> {
+  readonly name = "files";
+  readonly description = "Gathers information from files";
 
-  async gather(filesOptions: FilesAgentOptions): Promise<GatheredInformation[]> {
-    console.log("file options", filesOptions);
+  async gather(
+    filesOptions: FilesAgentOptions
+  ): Promise<GatheredInformation[]> {
+    // Step 1: Collect all matching file paths
+    const filePaths = await this.collectFilePaths(filesOptions);
 
-    const fileContent = await Promise.all(
-      filesOptions.map(async (fileOrGlob) => {
-        const filePaths = await glob(fileOrGlob);
+    // Step 2: Convert file paths to GatheredInformation
+    const gatheredInformation =
+      await this.convertToGatheredInformation(filePaths);
 
-        const filePromises = filePaths.map(async (filePath) => {
-          const fileStats = await stat(filePath);
-
-          if (fileStats.isDirectory()) {
-            // Recursively gather files from the directory
-            const directoryFiles = await this.gatherFilesFromDirectory(filePath);
-            return directoryFiles.join('\n');
-          } else {
-            // Read the file content
-            return readFile(filePath, 'utf-8');
-          }
-        });
-
-        return (await Promise.all(filePromises)).join('\n');
-      })
-    );
-
-    return [
-      {
-        tag: 'files',
-        attrs: {},
-        content: fileContent.join('\n'),
-      },
-    ];
+    return gatheredInformation;
   }
 
-  private async gatherFilesFromDirectory(directoryPath: string): Promise<string[]> {
-    const filePaths = await glob(path.join(directoryPath, '**', '*'));
+  private async collectFilePaths(
+    filesOptions: FilesAgentOptions
+  ): Promise<string[]> {
+    const filePathPromises = filesOptions.map(async (fileOrDirPath) => {
+      try {
+        const fileStats = await stat(fileOrDirPath);
 
-    const filePromises = filePaths.map(async (filePath) => {
-      const fileStats = await stat(filePath);
-
-      if (fileStats.isDirectory()) {
-        // Skip directories
-        return '';
-      } else {
-        // Read the file content
-        return readFile(filePath, 'utf-8');
+        if (fileStats.isDirectory()) {
+          // If it's a directory, collect all files within it
+          const directoryFiles = await glob(
+            path.join(fileOrDirPath, "**", "*"),
+            { nodir: true }
+          );
+          return directoryFiles;
+        } else {
+          // If it's a file path, return it as is
+          return [fileOrDirPath];
+        }
+      } catch (error) {
+        // If the path is not a file or directory, assume it's a glob pattern
+        const matchedPaths = await glob(fileOrDirPath, { nodir: true });
+        return matchedPaths;
       }
     });
 
-    return Promise.all(filePromises);
+    const filePaths = await Promise.all(filePathPromises);
+    return filePaths.flat();
+  }
+
+  private async convertToGatheredInformation(
+    filePaths: string[]
+  ): Promise<GatheredInformation[]> {
+    const gatheredInformationPromises = filePaths.map(async (filePath) => {
+      const content = await readFile(filePath, "utf-8");
+
+      const gatheredFileInfo: GatheredInformation = {
+        tag: "file",
+        attrs: {
+          name: filePath,
+        },
+        content,
+      };
+
+      return gatheredFileInfo;
+    });
+
+    return Promise.all(gatheredInformationPromises);
+  }
+
+  parseOptions(options: string): FilesAgentOptions {
+    return options.split(",");
   }
 }

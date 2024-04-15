@@ -4,7 +4,7 @@ IMPORTANT: This is a work in progress. The documentation below is aspirational a
 
 LLMs like Claude and ChatGPT can be extremely useful. But gathering up all the background information they need to provide appropriate answers can be painful. That's where `recon` comes in.
 
-Running a simple command like `recon --file ./docs "What are the addresses for all of our internal servers?" | llm` beats manually looking through everything in the docs folder.
+Running a simple command like `recon --file ./docs --prompt "What are the addresses for all of our internal servers?" | llm` beats manually looking through everything in the docs folder.
 
 ## Installation
 
@@ -21,13 +21,13 @@ The `recon` command will output a text prompt in one of three ways:
 
 - **Clipboard**: If the `--clipboard` flag is provided, the prompt will be copied to your clipboard.
 - **File**: If the `--output` flag is provided, the prompt will be written to the specified file.
-- **Stdout**: If neither `--clipboard` nor `--output` is provided, the prompt will be written to `stdout`. This can be useful for combining with other tools, like [llm](https://llm.datasette.io/en/stable/). Example: `recon --file ./docs "How do I debug docker problems for this project?" | llm`.
+- **Stdout**: If neither `--clipboard` nor `--output` is provided, the prompt will be written to `stdout`. This can be useful for combining with other tools, like [llm](https://llm.datasette.io/en/stable/). Example: `recon --file ./docs --prompt "How do I debug docker problems for this project?" | llm`.
 
-### Specifying what you want from the LLM (directions)
+### Specifying what you want from the LLM (prompt)
 
-Example: `recon --file ./docs "What are the addresses for all of our internal servers?"`
+Example: `recon --file ./docs --prompt "What are the addresses for all of our internal servers?"`
 
-In addition to the background information that `recon` gathers, you can optionally provide directions for the LLM which will be included in the final prompt. It must be the final non-flag argument.
+In addition to the background information that `recon` gathers, you can optionally provide a prompt for the LLM which will be included in the final text.
 
 ### Gathering files
 
@@ -79,7 +79,7 @@ module.exports = {
 };
 ```
 
-You can then run your command with `recon docs` and pass in any additional arguments, such as directions. For example: `recon docs "How do I reset my local db?"`. If you pass in more `--files` or `--urls` options, they will be merged with the ones defined in the command.
+You can then run your command with `recon docs` and pass in any additional arguments, such as a prompt with custom directions. For example: `recon docs --prompt "How do I reset my local db?"`. If you pass in more `--files` or `--urls` options, they will be merged with the ones defined in the command.
 
 #### Config merging
 
@@ -108,8 +108,8 @@ module.exports = {
   commands: {
     // The key is the name of the command
     growth: {
-      // The default directions for this command
-      directions: "How are we doing on our growth goals?",
+      // The default prompt for this command
+      prompt: "How are we doing on our growth goals?",
       // The `gather` object must be provided, and must have at least one key
       // specifying an agent to use
       gather: {

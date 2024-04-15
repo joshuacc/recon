@@ -1,16 +1,10 @@
 // src/gatherInformation.ts
+import { ReconCommand } from "./config";
 import { ReconAgent, GatheredInformation } from "./reconAgent";
-
-interface CommandConfig {
-  directions?: string;
-  gather: {
-    [key: string]: any;
-  };
-}
 
 export async function gatherInformation(
   agents: ReconAgent<any>[],
-  commandConfig: any
+  commandConfig: ReconCommand
 ): Promise<string> {
   console.log("command config", commandConfig);
 
@@ -32,17 +26,19 @@ export async function gatherInformation(
   const prompt = `
 <task>Using the context gathered from the following sources, follow the directions given below:</task>
 
-${flattenedInformation
-  .map(
-    (info) =>
-      `<${info.tag} ${Object.entries(info.attrs)
-        .map(([key, value]) => `${key}="${value}"`)
-        .join(" ")}>${info.content}</${info.tag}>`
-  )
-  .join("\n  ")}
+${flattenedInformation.map(formatGatheredInformation).join("\n\n")}
 
-<directions>${commandConfig.directions}</directions>
+${commandConfig.prompt ? `<directions>\n${commandConfig.prompt}\n</directions>` : ""}
 `;
 
   return prompt.trim();
+}
+
+function formatGatheredInformation(info: GatheredInformation): string {
+    let formattedInfo = `<${info.tag}`;
+    for (const [key, value] of Object.entries(info.attrs)) {
+      formattedInfo += ` ${key}="${value}"`;
+    }
+    formattedInfo += `>\n${info.content}\n</${info.tag}>`;
+    return formattedInfo;
 }

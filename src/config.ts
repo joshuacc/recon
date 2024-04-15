@@ -1,6 +1,7 @@
 // src/config.ts
 import { ReconAgent } from './reconAgent';
 import path from 'path';
+import os from 'os';
 
 export interface ReconConfig {
   agents?: ReconAgent<any>[];
@@ -8,14 +9,14 @@ export interface ReconConfig {
 }
 
 export interface ReconCommand {
-  directions?: string;
+  prompt?: string;
   gather: {
     [key: string]: any;
   };
 }
 
-export function loadConfig(): ReconConfig {
-  const homedir = require('os').homedir();
+export async function loadConfig(): Promise<ReconConfig> {
+  const homedir = os.homedir();
   
   const homeConfigPath = path.join(homedir, '.recon.config.js');
   const projectConfigPath = path.join(process.cwd(), '.recon.config.js');
@@ -24,13 +25,13 @@ export function loadConfig(): ReconConfig {
   let projectConfig: ReconConfig = {};
 
   try {
-    homeConfig = require(homeConfigPath);
+    homeConfig = await import(homeConfigPath);
   } catch (error) {
     console.info(`No home-level config file found at ${homeConfigPath}`)
   }
 
   try {
-    projectConfig = require(projectConfigPath);
+    projectConfig = await import(projectConfigPath);
   } catch (error) {
     console.info(`No project-level config file found at ${projectConfigPath}`)
   }

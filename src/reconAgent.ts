@@ -51,4 +51,10 @@ export abstract class ReconAgent<T> {
    * @returns A promise that resolves to the gathered information as a string.
    */
   abstract gather(options: T): Promise<GatheredInformation[]>;
+
+  /**
+   * Converts a string representation of the options into the appropriate type for the agent.
+   * To opt out of this functionality, subclasses can set this property to `undefined`.
+   */
+  abstract parseOptions?(options: string): T;
 }
