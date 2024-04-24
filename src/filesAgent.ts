@@ -7,7 +7,7 @@ import { defaultExclusions } from "./defaultExclusions.js";
 
 type FilesAgentOptions = string[];
 
-export class FilesAgent extends ReconAgent<FilesAgentOptions> {
+export class FilesAgent implements ReconAgent<FilesAgentOptions> {
   readonly name = "files";
   readonly description = "Gathers information from files";
 

@@ -30,18 +30,18 @@ export interface GatheredInformation {
  * Abstract base class for recon agents.
  * Subclasses must provide implementations for the `name`, `description`, and `gather` properties/methods.
  */
-export abstract class ReconAgent<T> {
+export interface ReconAgent<T> {
   /**
    * The name of the recon agent, which will be used as an identifier in the configuration.
    * Each agent must provide a unique name.
    */
-  abstract readonly name: string;
+  readonly name: string;
 
   /**
    * A brief description of what the recon agent does.
    * Each agent must provide a description.
    */
-  abstract readonly description: string;
+  readonly description: string;
 
   /**
    * Gathers information based on the provided options.
@@ -50,11 +50,10 @@ export abstract class ReconAgent<T> {
    * @param options - The options specifying what information to gather.
    * @returns A promise that resolves to the gathered information as a string.
    */
-  abstract gather(options: T): Promise<GatheredInformation[]>;
+  gather(options: T): Promise<GatheredInformation[]>;
 
   /**
-   * Converts a string representation of the options into the appropriate type for the agent.
-   * To opt out of this functionality, subclasses can set this property to `undefined`.
+   * Converts a string representation of the options (used in the CLI) into the appropriate type for the agent..
    */
-  abstract parseOptions?(options: string): T;
+  parseOptions?(options: string): T;
 }

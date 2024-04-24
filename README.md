@@ -87,16 +87,15 @@ If you have a `.recon.config.js` file in your home directory and one in the root
 
 ### Creating your own recon agents
 
-You can create your own recon agents by extending the `ReconAgent` class and implementing the `gather` method. This method should return a promise that resolves with the gathered information.
-More details to come.
+You can create your own recon agents by implementing the [`ReconAgent` interface](src/reconAgent.ts).
 
 ## Configuration format
 
 ```js
 // This is a hypothetical recon agent for accessing database information
-const myDbAgent = require('./myDbAgent');
+import myDbAgent from './myDbAgent';
 
-module.exports = {
+export default {
   agents: [myDbAgent]
   commands: {
     // The key is the name of the command

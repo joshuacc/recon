@@ -25,15 +25,13 @@ export async function loadConfig(): Promise<ReconConfig> {
   let projectConfig: ReconConfig = {};
 
   try {
-    homeConfig = await import(homeConfigPath);
-  } catch (error) {
-    console.info(`No home-level config file found at ${homeConfigPath}`)
+    homeConfig = (await import(homeConfigPath)).default;
+  } catch (_error) {
   }
 
   try {
-    projectConfig = await import(projectConfigPath);
-  } catch (error) {
-    console.info(`No project-level config file found at ${projectConfigPath}`)
+    projectConfig = (await import(projectConfigPath)).default;
+  } catch (_error) {
   }
 
   const mergedConfig: ReconConfig = {

@@ -6,6 +6,7 @@ import { writeToFile } from "./fileWriter.js";
 import { FilesAgent } from "./filesAgent.js";
 import { UrlsAgent } from "./urlsAgent.js";
 import { ReconAgent } from "./reconAgent.js";
+import { NotesAgent } from "./notesAgent.js";
 
 const program = new Command();
 
@@ -59,6 +60,7 @@ program
       filesAgent,
       urlsAgent,
       ...(config.agents || []),
+      new NotesAgent(),
     ];
 
     const prompt = await gatherInformation(agents, commandConfig);

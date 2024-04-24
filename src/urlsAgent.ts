@@ -6,7 +6,7 @@ import { ReconAgent, GatheredInformation } from './reconAgent.js';
  */
 type UrlsAgentOptions = string[];
 
-export class UrlsAgent extends ReconAgent<UrlsAgentOptions> {
+export class UrlsAgent implements ReconAgent<UrlsAgentOptions> {
   readonly name = 'urls';
   readonly description = 'Gathers information from URLs';
 

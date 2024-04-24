@@ -1,6 +1,6 @@
 {
   "name": "@joshuacc/recon",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Gather background information to prompt LLMs",
   "main": "dist/index.js",
   "bin": {
@@ -9,7 +9,8 @@
   "type": "module",
   "access": "public",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
+    "test:watch": "vitest run --watch",
     "typecheck": "tsc --noEmit",
     "recon": "tsx src/index.ts",
     "clean": "rimraf dist",
@@ -38,8 +39,9 @@
     "@types/glob": "^8.1.0",
     "@types/node": "^20.12.7",
     "prettier": "^3.2.5",
+    "rimraf": "^5.0.5",
     "typescript": "^5.4.5",
-    "rimraf": "^5.0.5"
+    "vitest": "^1.5.0"
   },
   "dependencies": {
     "clipboardy": "^4.0.0",

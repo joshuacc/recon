@@ -1,10 +1,14 @@
-module.exports = {
+export default {
   commands: {
     src: {
-      prompt: "What version of Node.js is the project using?",
       gather: {
-        files: ["./.nvmrc"],
+        files: ["./*"],
       },
     },
+    code: {
+      gather: {
+        notes: "IMPORTANT: Only return the code, no commentary. Do not wrap the code in backticks.",
+      }
+    }
   },
 };
