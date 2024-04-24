@@ -24,7 +24,7 @@ program
       return value;
     }
   )
-  .option("--stdout", "Send output to stdout even if piping wasn't detected")
+  .option("--stdout", "Send output to stdout")
   .option("--files <files>", "Comma-separated list of files or directories")
   .option("--urls <urls>", "Comma-separated list of URLs")
   .arguments("[command]")
@@ -65,21 +65,32 @@ program
 
     const prompt = await gatherInformation(agents, commandConfig);
 
-    const isPiped = !process.stdout.isTTY;
+    let outputMethods = 0;
 
     if (options.clipboard) {
       const { default: clipboardy } = await import("clipboardy");
       clipboardy.writeSync(prompt);
       console.log("Prompt copied to clipboard");
-    } else if (options.output) {
+      outputMethods++;
+    }
+    
+    if (options.output) {
       await writeToFile(options.output, prompt);
       console.log(`Prompt written to ${options.output}`);
-    } else if (isPiped || options.stdout) {
-      process.stdout.write(prompt);
-    } else {
-      console.error("No output method specified");
-      process.exit(1);
+      outputMethods++;
     }
+    
+    const isPiped = !process.stdout.isTTY;
+
+    if (options.stdout || isPiped) {
+      process.stdout.write(prompt);
+      outputMethods++;
+    }
+
+    if (outputMethods === 0) {
+      console.warn("No output method detected or specified");
+    }
+
   });
 
 program.parse(process.argv);
