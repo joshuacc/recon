@@ -61,10 +61,10 @@ You can gather information from multiple sources by providing multiple `--file` 
 
 If you have a specific set of sources you want to gather information from frequently, you can define your own `recon` commands.
 
-Create a `.recon.config.js` file in the root of your project or in your home directory. For example:
+Create a `.recon.config.mjs` file in the root of your project or in your home directory. For example:
 
 ```js
-module.exports = {
+export default {
   commands: {
     // The key is the name of the command
     docs: {
@@ -81,7 +81,7 @@ You can then run your command with `recon docs` and pass in any additional argum
 
 #### Config merging
 
-If you have a `.recon.config.js` file in your home directory and one in the root of your project, the two will be merged. The project-level config will take precedence over the home-level config. Though it will print a warning if there are conflicting command definitions.
+If you have a `.recon.config.mjs` file in your home directory and one in the root of your project, the two will be merged. The project-level config will take precedence over the home-level config. Though it will print a warning if there are conflicting command definitions.
 
 ## Advanced usage
 

@@ -18,8 +18,8 @@ export interface ReconCommand {
 export async function loadConfig(): Promise<ReconConfig> {
   const homedir = os.homedir();
   
-  const homeConfigPath = path.join(homedir, '.recon.config.js');
-  const projectConfigPath = path.join(process.cwd(), '.recon.config.js');
+  const homeConfigPath = path.join(homedir, '.recon.config.mjs');
+  const projectConfigPath = path.join(process.cwd(), '.recon.config.mjs');
 
   let homeConfig: ReconConfig = {};
   let projectConfig: ReconConfig = {};
