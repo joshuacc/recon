@@ -27,8 +27,7 @@ export interface GatheredInformation {
 }
 
 /**
- * Abstract base class for recon agents.
- * Subclasses must provide implementations for the `name`, `description`, and `gather` properties/methods.
+ * Represents a recon agent that can gather information based on the provided options.
  */
 export interface ReconAgent<T> {
   /**

@@ -1,6 +1,6 @@
 {
   "name": "@joshuacc/recon",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Gather background information to prompt LLMs",
   "main": "dist/index.js",
   "bin": {

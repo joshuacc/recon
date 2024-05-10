@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.3.0
 
+- BREAKING: recon config files now use `.recon.config.mjs` instead of `.recon.config.js`, and require an export default statement.
 - NEW: recon can now send output to more than one destination at a time. For example, both clipboard and stdout.
 
 ## 0.2.0
