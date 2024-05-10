@@ -1,6 +1,6 @@
 export default {
   commands: {
-    src: {
+    all: {
       gather: {
         files: ["./*"],
       },

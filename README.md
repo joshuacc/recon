@@ -112,7 +112,9 @@ export default {
         // This will be used by MyDbAgent to gather more information for the prompt
         myDb: {
           query: 'SELECT COUNT(*) FROM users',
-        }
+        },
+        // Additional notes to pass along with the prompt. This is the built in `notes` agent
+        notes: `REMEMBER: All replies should be in business-speak. The more synergy, the better.`,
       }
     },
   }
