@@ -38,6 +38,7 @@
   "devDependencies": {
     "@types/glob": "^8.1.0",
     "@types/node": "^20.12.7",
+    "@vitest/coverage-v8": "^1.6.0",
     "prettier": "^3.2.5",
     "rimraf": "^5.0.5",
     "typescript": "^5.4.5",

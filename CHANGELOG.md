@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- NEW: Added a built-in `function` agent for use in configured commands
+
 ## 0.3.0
 
 - BREAKING: recon config files now use `.recon.config.mjs` instead of `.recon.config.js`, and require an export default statement.

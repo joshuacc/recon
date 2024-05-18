@@ -7,6 +7,7 @@ import { FilesAgent } from "./filesAgent.js";
 import { UrlsAgent } from "./urlsAgent.js";
 import { ReconAgent } from "./reconAgent.js";
 import { NotesAgent } from "./notesAgent.js";
+import { FunctionAgent } from "./functionAgent.js";
 
 const program = new Command();
 
@@ -61,6 +62,7 @@ program
       urlsAgent,
       ...(config.agents || []),
       new NotesAgent(),
+      new FunctionAgent(),
     ];
 
     const prompt = await gatherInformation(agents, commandConfig);

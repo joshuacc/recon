@@ -56,3 +56,13 @@ export interface ReconAgent<T> {
    */
   parseOptions?(options: string): T;
 }
+
+export function isGatheredInformation(obj: any): obj is GatheredInformation {
+  return (
+    obj &&
+    typeof obj === "object" &&
+    typeof obj.tag === "string" &&
+    typeof obj.attrs === "object" &&
+    typeof obj.content === "string"
+  );
+}

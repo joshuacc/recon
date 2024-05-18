@@ -123,6 +123,33 @@ export default {
 
 For full details on the configuration format, see `src/config.ts`.
 
+
+### Using the `function` agent
+
+The `function` agent allows you to run one or more functions to gather information without having to write a full-blown reusable recon agent. This can be useful for quick one-off tasks.
+
+```js
+export default {
+  commands: {
+    growth: {
+      gather: {
+        function: async () => {
+          return [{
+            tag: 'stripe-report',
+            attrs: {
+              date: Intl
+                .DateTimeFormat('en-US', { dateStyle: 'short' })
+                .format(new Date())
+            },
+            content: await getStripeReport();
+          }];
+        }
+      }
+    },
+  }
+};
+```
+
 ## Future features
 
 - Additional built-in agents
