@@ -2,7 +2,7 @@
 
 LLMs like Claude and ChatGPT can be extremely useful. But gathering up all the background information they need to provide appropriate answers can be painful. That's where `recon` comes in.
 
-Running a simple command like `recon --file ./docs --prompt "What are the addresses for all of our internal servers?" | llm` beats manually looking through everything in the docs folder.
+Running a simple command like `recon --files ./docs --prompt "What are the addresses for all of our internal servers?" | llm` beats manually looking through everything in the docs folder.
 
 ## Installation
 
@@ -19,29 +19,29 @@ The `recon` command will output a text prompt in one of three ways:
 
 - **Clipboard**: If the `--clipboard` flag is provided, the prompt will be copied to your clipboard.
 - **File**: If the `--output` flag is provided, the prompt will be written to the specified file.
-- **Stdout**: Recon will automatically detect if it is being piped to another command and will output the prompt to stdout in that case. This can be useful for combining with other tools, like [llm](https://llm.datasette.io/en/stable/). Example: `recon --file ./docs --prompt "How do I debug docker problems for this project?" | llm`.
+- **Stdout**: Recon will automatically detect if it is being piped to another command and will output the prompt to stdout in that case. This can be useful for combining with other tools, like [llm](https://llm.datasette.io/en/stable/). Example: `recon --files ./docs --prompt "How do I debug docker problems for this project?" | llm`.
 
 ### Specifying what you want from the LLM (prompt)
 
-Example: `recon --file ./docs --prompt "What are the addresses for all of our internal servers?"`
+Example: `recon --files ./docs --prompt "What are the addresses for all of our internal servers?"`
 
 In addition to the background information that `recon` gathers, you can optionally provide a prompt for the LLM which will be included in the final text.
 
 ### Gathering files
 
-Example: `recon --file ./docs`
+Example: `recon --files ./docs`
 
 You can specify files for `recon` to gather in several ways.
 
 - **Directories**: You can provide the path to a directory, and `recon` will recursively search through all the files in that directory.
 
-- **Globs**: Globs are like wildcards, and can be used to specify multiple files or directories. For example, `recon --file ./docs/**/*.md` will gather information from all markdown files in the `docs` directory and its subdirectories.
+- **Globs**: Globs are like wildcards, and can be used to specify multiple files or directories. For example, `recon --files ./docs/**/*.md` will gather information from all markdown files in the `docs` directory and its subdirectories.
 
-- **Files**: You can specify a single file, and `recon` will gather information from that file. For example, `recon --file ./docs/server_info.md`.
+- **Files**: You can specify a single file, and `recon` will gather information from that file. For example, `recon --files ./docs/server_info.md`.
 
-- **Comma Separated**: To provide multiple sources, you can provide them as a comma-separated list. For example, `recon --file ./docs,./src/**/*.tsx`.
+- **Comma Separated**: To provide multiple sources, you can provide them as a comma-separated list. For example, `recon --files ./docs,./src/**/*.tsx`.
 
-- **Exclusions**: You can exclude files or directories by prefixing them with a `!`. For example, `recon --file ./docs,./src/**/*.tsx,!./src/secret.tsx`.
+- **Exclusions**: You can exclude files or directories by prefixing them with a `!`. For example, `recon --files ./docs,./src/**/*.tsx,!./src/secret.tsx`.
 
 NOTE: `recon` excludes some files and directories by default. These are `.git`, `node_modules`, and others. To see the complete list, see `src/defaultExclusions.ts`.
 
@@ -53,9 +53,9 @@ To gather information from a website, use the `--urls` option followed by the UR
 
 ### Gather from multiple sources
 
-Example: `recon --file ./docs --urls https://example.com`
+Example: `recon --files ./docs --urls https://example.com`
 
-You can gather information from multiple sources by providing multiple `--file` and `--urls` options.
+You can gather information from multiple sources by providing multiple `--files` and `--urls` options.
 
 ### Creating recon commands as shortcuts
 
