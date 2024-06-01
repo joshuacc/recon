@@ -135,6 +135,46 @@ describe('FilesAgent', () => {
     expect(result).toEqual(expected);
   });
 
+  it('should handle exclude patterns starting with an exclamation point correctly', async () => {
+    const mockFiles = ['docs/file1.txt', 'docs/file2.txt', 'docs/secret.txt'];
+
+    vi.mocked(readFile).mockResolvedValue('File content');
+    vi.mocked(stat).mockImplementation((path) => Promise.reject(new Error(`No such file or directory: ${path}`)) as any);
+
+    vi.mocked(glob).mockImplementation((pattern, options) => {
+      const ignorePatterns = (options.ignore || []) as string[];
+      return Promise.resolve(
+        mockFiles.filter(filePath => {
+          // Check if the file should be excluded
+          return !ignorePatterns.some(ignorePattern => {
+            if (ignorePattern.startsWith('!')) {
+              return !filePath.includes(ignorePattern.slice(1));
+            }
+            return filePath.includes(ignorePattern);
+        })
+      }));
+    });
+
+    const agent = new FilesAgent();
+    const files = ['docs/**', '!docs/secret.txt'];
+
+    const expected = [
+      {
+        tag: 'file',
+        attrs: { name: 'docs/file1.txt' },
+        content: 'File content',
+      },
+      {
+        tag: 'file',
+        attrs: { name: 'docs/file2.txt' },
+        content: 'File content',
+      },
+    ];
+
+    const result = await agent.gather(files);
+    expect(result).toEqual(expected);
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
   });

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- NEW: Improved the default exclusions to exclude more binary file types
+- FIX: Fixed a bug where the `files` agent did not properly handle exclusions that started with a `!` character
 - NEW: Added a built-in `function` agent for use in configured commands
 
 ## 0.3.0
