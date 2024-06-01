@@ -25,7 +25,6 @@ export async function loadConfig(): Promise<ReconConfig> {
   let homeConfig: ReconConfig = {};
   let projectConfig: ReconConfig = {};
 
-  
   if (fs.existsSync(homeConfigPath)) {
     homeConfig = (await import(homeConfigPath)).default;
   }
@@ -43,9 +42,7 @@ export async function loadConfig(): Promise<ReconConfig> {
     },
   };
 
-  for (const commandName of Object.keys(
-    projectConfig.commands || {},
-  )) {
+  for (const commandName of Object.keys(projectConfig.commands || {})) {
     if (homeConfig.commands && homeConfig.commands[commandName]) {
       console.warn(
         `Warning: Command "${commandName}" is defined in both config files. ` +
