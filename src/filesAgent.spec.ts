@@ -142,13 +142,17 @@ describe('FilesAgent', () => {
     vi.mocked(stat).mockImplementation((path) => Promise.reject(new Error(`No such file or directory: ${path}`)) as any);
 
     vi.mocked(glob).mockImplementation((pattern, options) => {
-      const ignorePatterns = options.ignore || [];
+      const ignorePatterns = (options.ignore || []) as string[];
       return Promise.resolve(
         mockFiles.filter(filePath => {
           // Check if the file should be excluded
-          return !ignorePatterns.some(exclusion => filePath.includes(exclusion.split('/').pop()));
+          return !ignorePatterns.some(ignorePattern => {
+            if (ignorePattern.startsWith('!')) {
+              return !filePath.includes(ignorePattern.slice(1));
+            }
+            return filePath.includes(ignorePattern);
         })
-      );
+      }));
     });
 
     const agent = new FilesAgent();
