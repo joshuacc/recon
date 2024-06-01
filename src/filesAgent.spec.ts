@@ -79,7 +79,7 @@ describe("FilesAgent", () => {
     const mockFiles = ["file1.txt", "file2.txt"];
     vi.mocked(readFile).mockResolvedValue("File content");
     vi.mocked(stat).mockResolvedValue({ isDirectory: () => true } as any);
-    vi.mocked(glob).mockImplementation((pattern, options) =>
+    vi.mocked(glob).mockImplementation(() =>
       Promise.resolve(
         mockFiles.filter((file) => !mockDefaultExclusions.includes(file)),
       ),
@@ -105,7 +105,7 @@ describe("FilesAgent", () => {
       (path) =>
         Promise.reject(new Error(`No such file or directory: ${path}`)) as any,
     );
-    vi.mocked(glob).mockImplementation((pattern, options) =>
+    vi.mocked(glob).mockImplementation(() =>
       Promise.resolve(
         mockFiles.filter((file) => !mockDefaultExclusions.includes(file)),
       ),
@@ -136,7 +136,7 @@ describe("FilesAgent", () => {
       (path) =>
         Promise.reject(new Error(`No such file or directory: ${path}`)) as any,
     );
-    vi.mocked(glob).mockImplementation((pattern, options) =>
+    vi.mocked(glob).mockImplementation(() =>
       Promise.resolve(
         mockFiles.filter((file) => !mockDefaultExclusions.includes(file)),
       ),

@@ -3,7 +3,7 @@ import { ReconCommand } from "./config.js";
 import { ReconAgent, GatheredInformation } from "./reconAgent.js";
 
 export async function gatherInformation(
-  agents: ReconAgent<any>[],
+  agents: ReconAgent<unknown>[],
   commandConfig: ReconCommand,
 ): Promise<string> {
   const gatheredInformation: GatheredInformation[][] = await Promise.all(

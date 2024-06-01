@@ -15,16 +15,7 @@ program
   .description("Gather information for a specific command")
   .option("-p, --prompt <prompt>", "Prompt to append to the output")
   .option("--clipboard", "Copy the prompt to the clipboard")
-  .option(
-    "-o, --output <file>",
-    "Write the prompt to a file",
-    (value, prev) => {
-      if (value.startsWith("-")) {
-        throw new Error("Invalid output file");
-      }
-      return value;
-    },
-  )
+  .option("-o, --output <file>", "Write the prompt to a file")
   .option("--stdout", "Send output to stdout")
   .option("--files <files>", "Comma-separated list of files or directories")
   .option("--urls <urls>", "Comma-separated list of URLs")
@@ -56,7 +47,7 @@ program
       commandConfig.gather.urls = urlsAgent.parseOptions(options.urls);
     }
 
-    let agents: ReconAgent<any>[] = [
+    const agents: ReconAgent<unknown>[] = [
       filesAgent,
       urlsAgent,
       ...(config.agents || []),

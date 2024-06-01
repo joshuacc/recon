@@ -2,16 +2,17 @@
 import { ReconAgent } from "./reconAgent";
 import path from "path";
 import os from "os";
+import fs from "fs";
 
 export interface ReconConfig {
-  agents?: ReconAgent<any>[];
+  agents?: ReconAgent<unknown>[];
   commands?: Record<string, ReconCommand>;
 }
 
 export interface ReconCommand {
   prompt?: string;
   gather: {
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -24,13 +25,14 @@ export async function loadConfig(): Promise<ReconConfig> {
   let homeConfig: ReconConfig = {};
   let projectConfig: ReconConfig = {};
 
-  try {
+  
+  if (fs.existsSync(homeConfigPath)) {
     homeConfig = (await import(homeConfigPath)).default;
-  } catch (_error) {}
+  }
 
-  try {
+  if (fs.existsSync(projectConfigPath)) {
     projectConfig = (await import(projectConfigPath)).default;
-  } catch (_error) {}
+  }
 
   const mergedConfig: ReconConfig = {
     ...homeConfig,
@@ -41,7 +43,7 @@ export async function loadConfig(): Promise<ReconConfig> {
     },
   };
 
-  for (const [commandName, command] of Object.entries(
+  for (const commandName of Object.keys(
     projectConfig.commands || {},
   )) {
     if (homeConfig.commands && homeConfig.commands[commandName]) {
