@@ -32,7 +32,9 @@ const GatheredInformationSchema = z.object({
   content: z.string(),
 });
 
-export function isGatheredInformation(obj: unknown): obj is GatheredInformation {
+export function isGatheredInformation(
+  obj: unknown,
+): obj is GatheredInformation {
   return GatheredInformationSchema.safeParse(obj).success;
 }
 
