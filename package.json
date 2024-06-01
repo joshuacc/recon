@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit",
     "recon": "tsx src/index.ts",
     "clean": "rimraf dist",
-    "build": "rimraf dist && tsc && chmod +x dist/src/index.js",
+    "build": "rimraf dist && tsc && chmod +x dist/index.js",
     "prepublishOnly": "npm run build"
   },
   "repository": {
