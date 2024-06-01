@@ -1,17 +1,21 @@
 // src/functionAgent.ts
-import { GatheredInformation, ReconAgent, isGatheredInformation } from "./reconAgent.js";
+import {
+  GatheredInformation,
+  ReconAgent,
+  isGatheredInformation,
+} from "./reconAgent.js";
 
-type GatherFunction = () => (Promise<GatheredInformation[]> | GatheredInformation[]);
-type FunctionAgentOptions =  GatherFunction[] | GatherFunction;
+type GatherFunction = () =>
+  | Promise<GatheredInformation[]>
+  | GatheredInformation[];
+type FunctionAgentOptions = GatherFunction[] | GatherFunction;
 
 export class FunctionAgent implements ReconAgent<FunctionAgentOptions> {
   readonly name = "function";
   readonly description =
     "Allows users define their own functions in .recon.config.mjs to gather information";
 
-  async gather(
-    fns: FunctionAgentOptions
-  ): Promise<GatheredInformation[]> {
+  async gather(fns: FunctionAgentOptions): Promise<GatheredInformation[]> {
     const funcs = Array.isArray(fns) ? fns : [fns];
 
     const results: GatheredInformation[] = [];
@@ -24,7 +28,7 @@ export class FunctionAgent implements ReconAgent<FunctionAgentOptions> {
       const result = await func();
       if (!Array.isArray(result) || !result.every(isGatheredInformation)) {
         throw new Error(
-          "Function must return an array of GatheredInformation objects"
+          "Function must return an array of GatheredInformation objects",
         );
       }
       results.push(...result);

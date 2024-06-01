@@ -13,6 +13,12 @@
     "test:watch": "vitest run --watch",
     "typecheck": "tsc --noEmit",
     "recon": "tsx src/index.ts",
+    "format": "prettier --write \"./**/*.{ts,js,mjs}\"",
+    "format:check": "prettier --check \"./**/*.{ts,js,mjs}\"",
+    "lint": "eslint src --fix",
+    "lint:check": "eslint src",
+    "check:static": "npm run typecheck && npm run lint:check && npm run format:check",
+    "check": "npm run check:static && npm run test",
     "clean": "rimraf dist",
     "build": "rimraf dist && tsc && chmod +x dist/index.js",
     "prepublishOnly": "npm run build"
@@ -36,18 +42,23 @@
   },
   "homepage": "https://github.com/joshuacc/recon#readme",
   "devDependencies": {
+    "@eslint/js": "^9.4.0",
+    "@types/eslint__js": "^8.42.3",
     "@types/glob": "^8.1.0",
     "@types/node": "^20.12.7",
     "@vitest/coverage-v8": "^1.6.0",
+    "eslint": "^8.57.0",
     "prettier": "^3.2.5",
     "rimraf": "^5.0.5",
     "tsx": "^4.11.0",
     "typescript": "^5.4.5",
+    "typescript-eslint": "^7.11.0",
     "vitest": "^1.5.0"
   },
   "dependencies": {
     "clipboardy": "^4.0.0",
     "commander": "^12.0.0",
-    "glob": "^10.3.12"
+    "glob": "^10.3.12",
+    "zod": "^3.23.8"
   }
 }

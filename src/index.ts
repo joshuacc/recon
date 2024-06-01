@@ -15,22 +15,12 @@ program
   .description("Gather information for a specific command")
   .option("-p, --prompt <prompt>", "Prompt to append to the output")
   .option("--clipboard", "Copy the prompt to the clipboard")
-  .option(
-    "-o, --output <file>",
-    "Write the prompt to a file",
-    (value, prev) => {
-      if (value.startsWith("-")) {
-        throw new Error("Invalid output file");
-      }
-      return value;
-    }
-  )
+  .option("-o, --output <file>", "Write the prompt to a file")
   .option("--stdout", "Send output to stdout")
   .option("--files <files>", "Comma-separated list of files or directories")
   .option("--urls <urls>", "Comma-separated list of URLs")
   .arguments("[command]")
   .action(async (command, options) => {
-
     const config = await loadConfig();
 
     const { commands } = config;
@@ -57,7 +47,7 @@ program
       commandConfig.gather.urls = urlsAgent.parseOptions(options.urls);
     }
 
-    let agents: ReconAgent<any>[] = [
+    const agents: ReconAgent<unknown>[] = [
       filesAgent,
       urlsAgent,
       ...(config.agents || []),
@@ -75,13 +65,13 @@ program
       console.log("Prompt copied to clipboard");
       outputMethods++;
     }
-    
+
     if (options.output) {
       await writeToFile(options.output, prompt);
       console.log(`Prompt written to ${options.output}`);
       outputMethods++;
     }
-    
+
     const isPiped = !process.stdout.isTTY;
 
     if (options.stdout || isPiped) {
@@ -92,7 +82,6 @@ program
     if (outputMethods === 0) {
       console.warn("No output method detected or specified");
     }
-
   });
 
 program.parse(process.argv);

@@ -1,5 +1,5 @@
 // src/urlsAgent.ts
-import { ReconAgent, GatheredInformation } from './reconAgent.js';
+import { ReconAgent, GatheredInformation } from "./reconAgent.js";
 
 /**
  * A list of URLs to gather information from.
@@ -7,27 +7,27 @@ import { ReconAgent, GatheredInformation } from './reconAgent.js';
 type UrlsAgentOptions = string[];
 
 export class UrlsAgent implements ReconAgent<UrlsAgentOptions> {
-  readonly name = 'urls';
-  readonly description = 'Gathers information from URLs';
+  readonly name = "urls";
+  readonly description = "Gathers information from URLs";
 
   async gather(urls: UrlsAgentOptions): Promise<GatheredInformation[]> {
     const urlContent = await Promise.all(
       urls.map(async (url) => {
         const response = await fetch(url);
         return response.text();
-      })
+      }),
     );
 
     return [
       {
-        tag: 'urls',
+        tag: "urls",
         attrs: {},
-        content: urlContent.join('\n'),
+        content: urlContent.join("\n"),
       },
     ];
   }
 
   parseOptions(options: string): UrlsAgentOptions {
-    return options.split(',');
+    return options.split(",");
   }
 }

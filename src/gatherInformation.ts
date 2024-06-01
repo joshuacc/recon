@@ -3,8 +3,8 @@ import { ReconCommand } from "./config.js";
 import { ReconAgent, GatheredInformation } from "./reconAgent.js";
 
 export async function gatherInformation(
-  agents: ReconAgent<any>[],
-  commandConfig: ReconCommand
+  agents: ReconAgent<unknown>[],
+  commandConfig: ReconCommand,
 ): Promise<string> {
   const gatheredInformation: GatheredInformation[][] = await Promise.all(
     agents.map(async (agent) => {
@@ -16,7 +16,7 @@ export async function gatherInformation(
       }
 
       return agent.gather(agentOptions);
-    })
+    }),
   );
 
   const flattenedInformation = gatheredInformation.flat();
@@ -33,10 +33,10 @@ ${commandConfig.prompt ? `<directions>\n${commandConfig.prompt}\n</directions>` 
 }
 
 function formatGatheredInformation(info: GatheredInformation): string {
-    let formattedInfo = `<${info.tag}`;
-    for (const [key, value] of Object.entries(info.attrs)) {
-      formattedInfo += ` ${key}="${value}"`;
-    }
-    formattedInfo += `>\n${info.content}\n</${info.tag}>`;
-    return formattedInfo;
+  let formattedInfo = `<${info.tag}`;
+  for (const [key, value] of Object.entries(info.attrs)) {
+    formattedInfo += ` ${key}="${value}"`;
+  }
+  formattedInfo += `>\n${info.content}\n</${info.tag}>`;
+  return formattedInfo;
 }

@@ -1,4 +1,4 @@
-
+import { z } from "zod";
 /**
  * Represents information gathered by a recon agent. It will be converted into XML format.
  * For example:
@@ -18,12 +18,22 @@ export interface GatheredInformation {
    */
   attrs: {
     [attrName: string]: string;
-  }
+  };
 
   /**
    * The actual information gathered.
    */
   content: string;
+}
+
+const GatheredInformationSchema = z.object({
+  tag: z.string(),
+  attrs: z.record(z.string()),
+  content: z.string(),
+});
+
+export function isGatheredInformation(obj: unknown): obj is GatheredInformation {
+  return GatheredInformationSchema.safeParse(obj).success;
 }
 
 /**
@@ -55,14 +65,4 @@ export interface ReconAgent<T> {
    * Converts a string representation of the options (used in the CLI) into the appropriate type for the agent..
    */
   parseOptions?(options: string): T;
-}
-
-export function isGatheredInformation(obj: any): obj is GatheredInformation {
-  return (
-    obj &&
-    typeof obj === "object" &&
-    typeof obj.tag === "string" &&
-    typeof obj.attrs === "object" &&
-    typeof obj.content === "string"
-  );
 }
