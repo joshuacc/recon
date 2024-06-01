@@ -21,6 +21,11 @@ program
   .option("--urls <urls>", "Comma-separated list of URLs")
   .arguments("[command]")
   .action(async (command, options) => {
+    if (!command && Object.keys(options).length === 0) {
+      program.outputHelp();
+      return;
+    }
+
     const config = await loadConfig();
 
     const { commands } = config;

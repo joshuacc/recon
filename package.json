@@ -21,6 +21,7 @@
     "check": "npm run check:static && npm run test",
     "clean": "rimraf dist",
     "build": "rimraf dist && tsc && chmod +x dist/index.js",
+    "relink": "npm run build && npm link",
     "prepublishOnly": "npm run build"
   },
   "repository": {
