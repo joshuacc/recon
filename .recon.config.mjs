@@ -7,9 +7,10 @@ export default {
     },
     code: {
       gather: {
-        notes: "IMPORTANT: Only return the code, no commentary. Do not wrap the code in backticks.",
+        notes:
+          "IMPORTANT: Only return the code, no commentary. Do not wrap the code in backticks.",
         files: ["./"],
-      }
+      },
     },
   },
 };

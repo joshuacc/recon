@@ -1,4 +1,3 @@
-
 /**
  * Represents information gathered by a recon agent. It will be converted into XML format.
  * For example:
@@ -18,7 +17,7 @@ export interface GatheredInformation {
    */
   attrs: {
     [attrName: string]: string;
-  }
+  };
 
   /**
    * The actual information gathered.

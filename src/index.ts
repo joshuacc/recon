@@ -23,14 +23,13 @@ program
         throw new Error("Invalid output file");
       }
       return value;
-    }
+    },
   )
   .option("--stdout", "Send output to stdout")
   .option("--files <files>", "Comma-separated list of files or directories")
   .option("--urls <urls>", "Comma-separated list of URLs")
   .arguments("[command]")
   .action(async (command, options) => {
-
     const config = await loadConfig();
 
     const { commands } = config;
@@ -75,13 +74,13 @@ program
       console.log("Prompt copied to clipboard");
       outputMethods++;
     }
-    
+
     if (options.output) {
       await writeToFile(options.output, prompt);
       console.log(`Prompt written to ${options.output}`);
       outputMethods++;
     }
-    
+
     const isPiped = !process.stdout.isTTY;
 
     if (options.stdout || isPiped) {
@@ -92,7 +91,6 @@ program
     if (outputMethods === 0) {
       console.warn("No output method detected or specified");
     }
-
   });
 
 program.parse(process.argv);

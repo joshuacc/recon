@@ -13,6 +13,8 @@
     "test:watch": "vitest run --watch",
     "typecheck": "tsc --noEmit",
     "recon": "tsx src/index.ts",
+    "format": "prettier --write \"./**/*.{ts,js,mjs}\"",
+    "format:check": "prettier --check \"./**/*.{ts,js,mjs}\"",
     "clean": "rimraf dist",
     "build": "rimraf dist && tsc && chmod +x dist/index.js",
     "prepublishOnly": "npm run build"

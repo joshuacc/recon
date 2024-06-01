@@ -12,11 +12,15 @@ export class FilesAgent implements ReconAgent<FilesAgentOptions> {
   readonly description = "Gathers information from files";
 
   async gather(
-    filesOptions: FilesAgentOptions
+    filesOptions: FilesAgentOptions,
   ): Promise<GatheredInformation[]> {
     // Step 1: Collect all matching file paths with applied exclusions
-    const { inclusionPatterns, exclusionPatterns } = this.parsePatterns(filesOptions);
-    const filePaths = await this.collectFilePathsWithExclusions(inclusionPatterns, exclusionPatterns);
+    const { inclusionPatterns, exclusionPatterns } =
+      this.parsePatterns(filesOptions);
+    const filePaths = await this.collectFilePathsWithExclusions(
+      inclusionPatterns,
+      exclusionPatterns,
+    );
 
     // Step 2: Convert file paths to GatheredInformation
     const gatheredInformation =
@@ -27,7 +31,7 @@ export class FilesAgent implements ReconAgent<FilesAgentOptions> {
 
   private async collectFilePathsWithExclusions(
     inclusionPatterns: string[],
-    exclusionPatterns: string[]
+    exclusionPatterns: string[],
   ): Promise<string[]> {
     const filePathPromises = inclusionPatterns.map(async (pattern) => {
       try {
@@ -35,10 +39,10 @@ export class FilesAgent implements ReconAgent<FilesAgentOptions> {
 
         if (fileStats.isDirectory()) {
           // If it's a directory, collect all files within it
-          const directoryFiles = await glob(
-            path.join(pattern, "**", "*"),
-            { nodir: true, ignore: [...defaultExclusions, ...exclusionPatterns] }
-          );
+          const directoryFiles = await glob(path.join(pattern, "**", "*"), {
+            nodir: true,
+            ignore: [...defaultExclusions, ...exclusionPatterns],
+          });
           return directoryFiles;
         } else {
           // If it's a file path, return it as is
@@ -59,7 +63,7 @@ export class FilesAgent implements ReconAgent<FilesAgentOptions> {
   }
 
   private async convertToGatheredInformation(
-    filePaths: string[]
+    filePaths: string[],
   ): Promise<GatheredInformation[]> {
     const gatheredInformationPromises = filePaths.map(async (filePath) => {
       const content = await readFile(filePath, "utf-8");
@@ -86,8 +90,8 @@ export class FilesAgent implements ReconAgent<FilesAgentOptions> {
     const inclusionPatterns: string[] = [];
     const exclusionPatterns: string[] = [];
 
-    options.forEach(option => {
-      if (option.startsWith('!')) {
+    options.forEach((option) => {
+      if (option.startsWith("!")) {
         exclusionPatterns.push(option.slice(1));
       } else {
         inclusionPatterns.push(option);
