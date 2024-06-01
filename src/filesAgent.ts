@@ -14,8 +14,9 @@ export class FilesAgent implements ReconAgent<FilesAgentOptions> {
   async gather(
     filesOptions: FilesAgentOptions
   ): Promise<GatheredInformation[]> {
-    // Step 1: Collect all matching file paths
-    const filePaths = await this.collectFilePaths(filesOptions);
+    // Step 1: Collect all matching file paths with applied exclusions
+    const { inclusionPatterns, exclusionPatterns } = this.parsePatterns(filesOptions);
+    const filePaths = await this.collectFilePathsWithExclusions(inclusionPatterns, exclusionPatterns);
 
     // Step 2: Convert file paths to GatheredInformation
     const gatheredInformation =
@@ -24,29 +25,30 @@ export class FilesAgent implements ReconAgent<FilesAgentOptions> {
     return gatheredInformation;
   }
 
-  private async collectFilePaths(
-    filesOptions: FilesAgentOptions
+  private async collectFilePathsWithExclusions(
+    inclusionPatterns: string[],
+    exclusionPatterns: string[]
   ): Promise<string[]> {
-    const filePathPromises = filesOptions.map(async (fileOrDirPath) => {
+    const filePathPromises = inclusionPatterns.map(async (pattern) => {
       try {
-        const fileStats = await stat(fileOrDirPath);
+        const fileStats = await stat(pattern);
 
         if (fileStats.isDirectory()) {
           // If it's a directory, collect all files within it
           const directoryFiles = await glob(
-            path.join(fileOrDirPath, "**", "*"),
-            { nodir: true, ignore: defaultExclusions }
+            path.join(pattern, "**", "*"),
+            { nodir: true, ignore: [...defaultExclusions, ...exclusionPatterns] }
           );
           return directoryFiles;
         } else {
           // If it's a file path, return it as is
-          return [fileOrDirPath];
+          return [pattern];
         }
       } catch (error) {
         // If the path is not a file or directory, assume it's a glob pattern
-        const matchedPaths = await glob(fileOrDirPath, {
+        const matchedPaths = await glob(pattern, {
           nodir: true,
-          ignore: defaultExclusions,
+          ignore: [...defaultExclusions, ...exclusionPatterns],
         });
         return matchedPaths;
       }
@@ -78,5 +80,20 @@ export class FilesAgent implements ReconAgent<FilesAgentOptions> {
 
   parseOptions(options: string): FilesAgentOptions {
     return options.split(",");
+  }
+
+  private parsePatterns(options: FilesAgentOptions) {
+    const inclusionPatterns: string[] = [];
+    const exclusionPatterns: string[] = [];
+
+    options.forEach(option => {
+      if (option.startsWith('!')) {
+        exclusionPatterns.push(option.slice(1));
+      } else {
+        inclusionPatterns.push(option);
+      }
+    });
+
+    return { inclusionPatterns, exclusionPatterns };
   }
 }
