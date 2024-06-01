@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit",
     "recon": "tsx src/index.ts",
     "clean": "rimraf dist",
-    "build": "rimraf dist && tsc && chmod +x dist/index.js",
+    "build": "rimraf dist && tsc && chmod +x dist/src/index.js",
     "prepublishOnly": "npm run build"
   },
   "repository": {
@@ -41,6 +41,7 @@
     "@vitest/coverage-v8": "^1.6.0",
     "prettier": "^3.2.5",
     "rimraf": "^5.0.5",
+    "tsx": "^4.11.0",
     "typescript": "^5.4.5",
     "vitest": "^1.5.0"
   },
