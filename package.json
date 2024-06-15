@@ -22,7 +22,8 @@
     "clean": "rimraf dist",
     "build": "rimraf dist && tsc && chmod +x dist/index.js",
     "relink": "npm run build && npm link",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -49,6 +50,8 @@
     "@types/node": "^20.12.7",
     "@vitest/coverage-v8": "^1.6.0",
     "eslint": "^8.57.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.7",
     "prettier": "^3.2.5",
     "rimraf": "^5.0.5",
     "tsx": "^4.11.0",
