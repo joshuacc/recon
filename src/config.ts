@@ -1,4 +1,3 @@
-// src/config.ts
 import { ReconAgent } from "./reconAgent";
 import path from "path";
 import os from "os";
@@ -18,10 +17,7 @@ export interface ReconCommand {
 
 export async function loadConfig(): Promise<ReconConfig> {
   const homedir = os.homedir();
-
   const homeConfigPath = path.join(homedir, ".recon.config.mjs");
-  const projectConfigPath = path.join(process.cwd(), ".recon.config.mjs");
-
   let homeConfig: ReconConfig = {};
   let projectConfig: ReconConfig = {};
 
@@ -29,7 +25,8 @@ export async function loadConfig(): Promise<ReconConfig> {
     homeConfig = (await import(homeConfigPath)).default;
   }
 
-  if (fs.existsSync(projectConfigPath)) {
+  const projectConfigPath = findProjectConfig(process.cwd());
+  if (projectConfigPath) {
     projectConfig = (await import(projectConfigPath)).default;
   }
 
@@ -52,4 +49,16 @@ export async function loadConfig(): Promise<ReconConfig> {
   }
 
   return mergedConfig;
+}
+
+function findProjectConfig(startDir: string): string | null {
+  let currentDir = startDir;
+  while (currentDir !== path.parse(currentDir).root) {
+    const configPath = path.join(currentDir, ".recon.config.mjs");
+    if (fs.existsSync(configPath)) {
+      return configPath;
+    }
+    currentDir = path.dirname(currentDir);
+  }
+  return null;
 }
