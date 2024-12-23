@@ -15,7 +15,10 @@ export interface ReconCommand {
   };
 }
 
-export async function loadConfig(): Promise<ReconConfig> {
+export async function loadConfig(): Promise<{
+  config: ReconConfig;
+  configDir?: string;
+}> {
   const homedir = os.homedir();
   const homeConfigPath = path.join(homedir, ".recon.config.mjs");
   let homeConfig: ReconConfig = {};
@@ -48,7 +51,10 @@ export async function loadConfig(): Promise<ReconConfig> {
     }
   }
 
-  return mergedConfig;
+  return {
+    config: mergedConfig,
+    configDir: projectConfigPath ? path.dirname(projectConfigPath) : undefined,
+  };
 }
 
 function findProjectConfig(startDir: string): string | null {

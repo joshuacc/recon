@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 import { gatherInformation } from "./gatherInformation.js";
-import { loadConfig } from "./config.js";
+import { loadConfig, ReconCommand } from "./config.js";
 import { writeToFile } from "./fileWriter.js";
 import { FilesAgent } from "./filesAgent.js";
 import { UrlsAgent } from "./urlsAgent.js";
@@ -26,7 +26,7 @@ program
       return;
     }
 
-    const config = await loadConfig();
+    const { config, configDir } = await loadConfig();
 
     const { commands } = config;
 
@@ -42,14 +42,22 @@ program
       commandConfig.prompt = options.prompt;
     }
 
+    // Create a new command config that includes both config file and CLI options
+    const mergedConfig: ReconCommand = {
+      ...commandConfig,
+      gather: { ...commandConfig.gather },
+    };
+
     const filesAgent = new FilesAgent();
     if (options.files) {
-      commandConfig.gather.files = filesAgent.parseOptions(options.files);
+      // CLI options are not from config
+      mergedConfig.gather.files = filesAgent.parseOptions(options.files);
     }
 
     const urlsAgent = new UrlsAgent();
     if (options.urls) {
-      commandConfig.gather.urls = urlsAgent.parseOptions(options.urls);
+      // CLI options are not from config
+      mergedConfig.gather.urls = urlsAgent.parseOptions(options.urls);
     }
 
     const agents: ReconAgent<unknown>[] = [
@@ -60,7 +68,7 @@ program
       new FunctionAgent(),
     ];
 
-    const prompt = await gatherInformation(agents, commandConfig);
+    const prompt = await gatherInformation(agents, mergedConfig, configDir);
 
     let outputMethods = 0;
 

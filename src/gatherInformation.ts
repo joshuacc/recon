@@ -5,6 +5,7 @@ import { ReconAgent, GatheredInformation } from "./reconAgent.js";
 export async function gatherInformation(
   agents: ReconAgent<unknown>[],
   commandConfig: ReconCommand,
+  configDir?: string,
 ): Promise<string> {
   const gatheredInformation: GatheredInformation[][] = await Promise.all(
     agents.map(async (agent) => {
@@ -15,7 +16,22 @@ export async function gatherInformation(
         return [];
       }
 
-      return agent.gather(agentOptions);
+      // Pass context to all agents
+      // For command line options, fromConfig will be false
+      // For config file options, fromConfig will be true
+      const fromConfig =
+        Array.isArray(agentOptions) &&
+        agentOptions.length > 0 &&
+        typeof agentOptions[0] === "object" &&
+        agentOptions[0] !== null &&
+        "fromConfig" in agentOptions[0]
+          ? agentOptions[0].fromConfig
+          : true;
+
+      return agent.gather(agentOptions, {
+        configDir,
+        fromConfig,
+      });
     }),
   );
 

@@ -12,5 +12,10 @@ export default {
         files: ["./"],
       },
     },
+    example: {
+      gather: {
+        files: ["src/config.ts"],
+      },
+    }
   },
 };
