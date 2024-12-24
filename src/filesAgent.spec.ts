@@ -36,10 +36,7 @@ describe("FilesAgent", () => {
   it("should properly parse options string", () => {
     const agent = new FilesAgent();
     const options = "./docs,./src/**/*.tsx";
-    expect(agent.parseOptions(options)).toEqual([
-      { path: "./docs", fromConfig: false },
-      { path: "./src/**/*.tsx", fromConfig: false },
-    ]);
+    expect(agent.parseOptions(options)).toEqual(["./docs", "./src/**/*.tsx"]);
   });
 
   it("should gather information from a single file", async () => {
@@ -48,7 +45,7 @@ describe("FilesAgent", () => {
     vi.mocked(glob).mockImplementation(() => Promise.resolve(["file.txt"]));
 
     const agent = new FilesAgent();
-    const files = [{ path: "./docs", fromConfig: false }];
+    const files = ["./docs"];
 
     const expected = [
       {
@@ -58,7 +55,7 @@ describe("FilesAgent", () => {
       },
     ];
 
-    const result = await agent.gather(files);
+    const result = await agent.gather(files, { configSource: "cli" });
     expect(result).toEqual(expected);
   });
 
@@ -70,10 +67,7 @@ describe("FilesAgent", () => {
     );
 
     const agent = new FilesAgent();
-    const files = [
-      { path: "./docs/file1", fromConfig: false },
-      { path: "./docs/file2", fromConfig: false },
-    ];
+    const files = ["./docs/file1", "./docs/file2"];
 
     const expected = [
       {
@@ -88,7 +82,7 @@ describe("FilesAgent", () => {
       },
     ];
 
-    const result = await agent.gather(files);
+    const result = await agent.gather(files, { configSource: "cli" });
     expect(result).toEqual(expected);
   });
 
@@ -103,7 +97,7 @@ describe("FilesAgent", () => {
     );
 
     const agent = new FilesAgent();
-    const files = [{ path: "./docs", fromConfig: false }];
+    const files = ["./docs"];
 
     const expected = mockFiles.map((file) => ({
       tag: "file",
@@ -111,7 +105,7 @@ describe("FilesAgent", () => {
       content: "File content",
     }));
 
-    const result = await agent.gather(files);
+    const result = await agent.gather(files, { configSource: "cli" });
     expect(result).toEqual(expected);
   });
 
@@ -129,7 +123,7 @@ describe("FilesAgent", () => {
     );
 
     const agent = new FilesAgent();
-    const files = [{ path: "./docs/*.txt", fromConfig: false }];
+    const files = ["./docs/*.txt"];
 
     const expected = mockFiles.map((file) => ({
       tag: "file",
@@ -137,7 +131,7 @@ describe("FilesAgent", () => {
       content: "File content",
     }));
 
-    const result = await agent.gather(files);
+    const result = await agent.gather(files, { configSource: "cli" });
     expect(result).toEqual(expected);
   });
 
@@ -160,7 +154,7 @@ describe("FilesAgent", () => {
     );
 
     const agent = new FilesAgent();
-    const files = [{ path: "./docs/**", fromConfig: false }];
+    const files = ["./docs/**"];
 
     const expected = mockFiles
       .filter(
@@ -173,7 +167,7 @@ describe("FilesAgent", () => {
         content: "File content",
       }));
 
-    const result = await agent.gather(files);
+    const result = await agent.gather(files, { configSource: "cli" });
     expect(result).toEqual(expected);
   });
 
@@ -187,9 +181,9 @@ describe("FilesAgent", () => {
     vi.mocked(glob).mockResolvedValue([mockFiles[0]]);
 
     const agent = new FilesAgent();
-    const result = await agent.gather([{ path: inputPath, fromConfig: true }], {
+    const result = await agent.gather([inputPath], {
       configDir: baseDir,
-      fromConfig: true,
+      configSource: "configFile",
     });
 
     // Verify path.join was called with baseDir
@@ -216,7 +210,7 @@ describe("FilesAgent", () => {
     vi.mocked(glob).mockResolvedValue([mockFiles[0]]);
 
     const agent = new FilesAgent();
-    const result = await agent.gather([{ path: inputPath, fromConfig: false }]);
+    const result = await agent.gather([inputPath], { configSource: "cli" });
 
     // Verify the file was read without baseDir modification
     expect(readFile).toHaveBeenCalledWith(inputPath, "utf-8");
@@ -255,10 +249,7 @@ describe("FilesAgent", () => {
     });
 
     const agent = new FilesAgent();
-    const files = [
-      { path: "docs/**", fromConfig: false },
-      { path: "!docs/secret.txt", fromConfig: false },
-    ];
+    const files = ["docs/**", "!docs/secret.txt"];
 
     const expected = [
       {
@@ -273,7 +264,7 @@ describe("FilesAgent", () => {
       },
     ];
 
-    const result = await agent.gather(files);
+    const result = await agent.gather(files, { configSource: "cli" });
     expect(result).toEqual(expected);
   });
 
@@ -289,9 +280,7 @@ describe("FilesAgent", () => {
 
     const agent = new FilesAgent();
     // First test with a command line path - should not use configDir
-    const cliResult = await agent.gather([
-      { path: cliPath, fromConfig: false },
-    ]);
+    const cliResult = await agent.gather([cliPath], { configSource: "cli" });
     expect(readFile).toHaveBeenCalledWith(cliPath, "utf-8");
     expect(readFile).not.toHaveBeenCalledWith(
       `${configDir}/${cliPath}`,
@@ -308,10 +297,10 @@ describe("FilesAgent", () => {
     vi.clearAllMocks();
 
     // Then test with a config path - should use configDir
-    const configResult = await agent.gather(
-      [{ path: cliPath, fromConfig: true }],
-      { configDir, fromConfig: true },
-    );
+    const configResult = await agent.gather([cliPath], {
+      configDir,
+      configSource: "configFile",
+    });
     expect(readFile).toHaveBeenCalledWith(`${configDir}/${cliPath}`, "utf-8");
     expect(configResult).toEqual([
       {

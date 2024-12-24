@@ -10,11 +10,11 @@ class TestAgent implements ReconAgent<string[]> {
 }
 
 describe("gatherInformation", () => {
-  it("should preserve fromConfig=false for command line options", async () => {
+  it("should preserve configSource='cli' for command line options", async () => {
     const agent = new TestAgent();
     const commandConfig = {
       gather: {
-        test: [{ path: "some/file/path", fromConfig: false }],
+        test: [{ path: "some/file/path", configSource: "cli" }],
       },
     };
     const configDir = "/config/dir";
@@ -27,12 +27,20 @@ describe("gatherInformation", () => {
       },
     ]);
 
-    await gatherInformation([agent], commandConfig, configDir);
+    const optionsSourceMap: Record<string, "configFile" | "cli"> = {
+      test: "cli",
+    }; // Example map for testing
+    await gatherInformation(
+      [agent],
+      commandConfig,
+      optionsSourceMap,
+      configDir,
+    );
 
-    // Verify that gather was called with fromConfig: false
+    // Verify that gather was called with configSource: 'cli'
     expect(agent.gather).toHaveBeenCalledWith(
-      [{ path: "some/file/path", fromConfig: false }],
-      { configDir, fromConfig: false },
+      [{ path: "some/file/path", configSource: "cli" }],
+      { configDir, configSource: "cli" },
     );
   });
 });

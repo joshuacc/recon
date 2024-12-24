@@ -50,7 +50,7 @@ export interface GatherContext {
   /**
    * Whether the options came from a config file (true) or command line (false)
    */
-  fromConfig: boolean;
+  configSource: "configFile" | "cli";
 }
 
 /**
@@ -79,7 +79,7 @@ export interface ReconAgent<T> {
    *                 such as resolving file paths relative to config location.
    * @returns A promise that resolves to the gathered information.
    */
-  gather(options: T, context?: GatherContext): Promise<GatheredInformation[]>;
+  gather(options: T, context: GatherContext): Promise<GatheredInformation[]>;
 
   /**
    * Converts a string representation of the options (used in the CLI) into the appropriate type for the agent.
