@@ -43,6 +43,20 @@ You can specify files for `recon` to gather in several ways.
 
 - **Exclusions**: You can exclude files or directories by prefixing them with a `!`. For example, `recon --files ./docs,./src/**/*.tsx,!./src/secret.tsx`.
 
+#### File Path Resolution
+
+When specifying file paths, `recon` resolves them differently depending on whether they are provided via the command line or a config file:
+
+- **Command Line Paths**: File paths provided via the `--files` option on the command line are resolved relative to the current working directory.
+
+- **Config File Paths**: File paths specified in a `.recon.config.mjs` file are resolved relative to the directory containing that config file.
+
+For example, if your current working directory is `/home/user/project` and you have a `.recon.config.mjs` file in `/home/user/project/config` with a file path specified as `./docs/info.md`, `recon` will resolve that path as `/home/user/project/config/docs/info.md`.
+
+However, if you run `recon --files ./docs/info.md` from `/home/user/project`, it will resolve the path as `/home/user/project/docs/info.md`.
+
+This behavior allows you to define file paths relative to your config file location, while still being able to provide absolute or working directory-relative paths from the command line.
+
 NOTE: `recon` excludes some files and directories by default. These are `.git`, `node_modules`, and others. To see the complete list, see `src/defaultExclusions.ts`.
 
 ### Gathering urls
