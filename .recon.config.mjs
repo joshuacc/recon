@@ -16,6 +16,6 @@ export default {
       gather: {
         files: ["src/config.ts"],
       },
-    }
+    },
   },
 };
