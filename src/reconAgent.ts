@@ -39,6 +39,21 @@ export function isGatheredInformation(
 }
 
 /**
+ * Context information passed to agents when gathering information
+ */
+export interface GatherContext {
+  /**
+   * The directory containing the config file, if one was found
+   */
+  configDir?: string;
+
+  /**
+   * Whether the options came from a config file (true) or command line (false)
+   */
+  configSource: "configFile" | "cli";
+}
+
+/**
  * Represents a recon agent that can gather information based on the provided options.
  */
 export interface ReconAgent<T> {
@@ -59,12 +74,15 @@ export interface ReconAgent<T> {
    * Each subclass must provide its own implementation of this method.
    *
    * @param options - The options specifying what information to gather.
-   * @returns A promise that resolves to the gathered information as a string.
+   * @param context - Optional context information about where the options came from.
+   *                 Only used by agents that need to know about the config environment,
+   *                 such as resolving file paths relative to config location.
+   * @returns A promise that resolves to the gathered information.
    */
-  gather(options: T): Promise<GatheredInformation[]>;
+  gather(options: T, context: GatherContext): Promise<GatheredInformation[]>;
 
   /**
-   * Converts a string representation of the options (used in the CLI) into the appropriate type for the agent..
+   * Converts a string representation of the options (used in the CLI) into the appropriate type for the agent.
    */
   parseOptions?(options: string): T;
 }
