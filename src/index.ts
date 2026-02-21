@@ -9,8 +9,10 @@ import { ReconAgent } from "./reconAgent.js";
 import { NotesAgent } from "./notesAgent.js";
 import { FunctionAgent } from "./functionAgent.js";
 import { mergeCommandConfigWithCli } from "./mergeCommandConfig.js";
+import { setupBrokenPipeHandler } from "./setupBrokenPipeHandler.js";
 
 const program = new Command();
+setupBrokenPipeHandler(process.stdout);
 
 program
   .description("Gather information for a specific command")
