@@ -9,7 +9,23 @@ import { glob } from "glob";
 import path from "path";
 import { defaultExclusions } from "./defaultExclusions.js";
 
-type FilesAgentOptions = string[];
+export interface SourcedFileOption {
+  path: string;
+  configSource: "configFile" | "cli";
+  configDir?: string;
+}
+
+type FilesAgentOptions = string[] | SourcedFileOption[];
+
+interface FilePattern {
+  pattern: string;
+  configSource: "configFile" | "cli";
+  configDir?: string;
+}
+
+interface MatchedFilePath {
+  filePath: string;
+}
 
 export class FilesAgent implements ReconAgent<FilesAgentOptions> {
   readonly name = "files";
@@ -19,35 +35,51 @@ export class FilesAgent implements ReconAgent<FilesAgentOptions> {
     filesOptions: FilesAgentOptions,
     context: GatherContext,
   ): Promise<GatheredInformation[]> {
+    const normalizedOptions = this.normalizeOptions(filesOptions, context);
+
     // Step 1: Collect all matching file paths with applied exclusions
     const { inclusionPatterns, exclusionPatterns } =
-      this.parsePatterns(filesOptions);
+      this.parsePatterns(normalizedOptions);
     const filePaths = await this.collectFilePathsWithExclusions(
       inclusionPatterns,
       exclusionPatterns,
-      context,
     );
 
     // Step 2: Convert file paths to GatheredInformation
     const gatheredInformation = await this.convertToGatheredInformation(
       filePaths,
-      context.configDir,
-      inclusionPatterns,
+      context.configDir ?? process.cwd(),
     );
 
     return gatheredInformation;
   }
 
-  private async collectFilePathsWithExclusions(
-    inclusionPatterns: string[],
-    exclusionPatterns: string[],
+  private normalizeOptions(
+    options: FilesAgentOptions,
     context: GatherContext,
-  ): Promise<string[]> {
-    const filePathPromises = inclusionPatterns.map(async (pattern) => {
-      let resolvedPattern = pattern;
-      if (context.configSource === "configFile" && context.configDir) {
-        resolvedPattern = path.join(context.configDir, pattern);
+  ): SourcedFileOption[] {
+    return options.map((option) => {
+      if (typeof option === "string") {
+        return {
+          path: option,
+          configSource: context.configSource,
+          configDir: context.configDir,
+        };
       }
+
+      return option;
+    });
+  }
+
+  private async collectFilePathsWithExclusions(
+    inclusionPatterns: FilePattern[],
+    exclusionPatterns: FilePattern[],
+  ): Promise<MatchedFilePath[]> {
+    const resolvedExclusions =
+      await this.resolveExclusionPatterns(exclusionPatterns);
+
+    const filePathPromises = inclusionPatterns.map(async (pattern) => {
+      const resolvedPattern = this.resolvePattern(pattern);
 
       try {
         const fileStats = await stat(resolvedPattern);
@@ -58,21 +90,29 @@ export class FilesAgent implements ReconAgent<FilesAgentOptions> {
             path.join(resolvedPattern, "**", "*"),
             {
               nodir: true,
-              ignore: [...defaultExclusions, ...exclusionPatterns],
+              ignore: [...defaultExclusions, ...resolvedExclusions],
             },
           );
-          return directoryFiles;
+          return directoryFiles.map((filePath) => ({
+            filePath,
+          }));
         } else {
           // If it's a file path, return it as is
-          return [resolvedPattern];
+          return [
+            {
+              filePath: resolvedPattern,
+            },
+          ];
         }
-      } catch (error) {
+      } catch {
         // If the path is not a file or directory, assume it's a glob pattern
         const matchedPaths = await glob(resolvedPattern, {
           nodir: true,
-          ignore: [...defaultExclusions, ...exclusionPatterns],
+          ignore: [...defaultExclusions, ...resolvedExclusions],
         });
-        return matchedPaths;
+        return matchedPaths.map((filePath) => ({
+          filePath,
+        }));
       }
     });
 
@@ -80,24 +120,49 @@ export class FilesAgent implements ReconAgent<FilesAgentOptions> {
     return filePaths.flat();
   }
 
+  private async resolveExclusionPatterns(
+    exclusionPatterns: FilePattern[],
+  ): Promise<string[]> {
+    const resolvedExclusions = await Promise.all(
+      exclusionPatterns.map(async (pattern) => {
+        const resolvedPattern = this.resolvePattern(pattern);
+
+        try {
+          const exclusionStats = await stat(resolvedPattern);
+          if (exclusionStats.isDirectory()) {
+            // Treat directory exclusions like inverse directory inclusions.
+            return path.join(resolvedPattern, "**");
+          }
+        } catch {
+          // If the path doesn't exist, keep the exclusion as a glob pattern.
+        }
+
+        return resolvedPattern;
+      }),
+    );
+
+    return resolvedExclusions;
+  }
+
+  private resolvePattern(pattern: FilePattern): string {
+    if (pattern.configSource === "configFile" && pattern.configDir) {
+      return path.join(pattern.configDir, pattern.pattern);
+    }
+
+    return pattern.pattern;
+  }
+
   private async convertToGatheredInformation(
-    filePaths: string[],
-    baseDir?: string,
-    originalPaths?: string[],
+    filePaths: MatchedFilePath[],
+    displayRootDir: string,
   ): Promise<GatheredInformation[]> {
     const gatheredInformationPromises = filePaths.map(async (filePath) => {
-      const content = await readFile(filePath, "utf-8");
+      const content = await readFile(filePath.filePath, "utf-8");
 
-      // If baseDir is provided, convert absolute paths back to relative paths for display
-      let displayPath = filePath;
-      if (baseDir && originalPaths?.length === 1) {
-        // If there's only one original path, use it directly
-        displayPath = originalPaths[0];
-      } else if (baseDir) {
-        // Otherwise try to make the path relative to baseDir
-        const relativePath = path.relative(baseDir, filePath);
-        displayPath = relativePath.startsWith("..") ? filePath : relativePath;
-      }
+      const absoluteFilePath = path.isAbsolute(filePath.filePath)
+        ? filePath.filePath
+        : path.resolve(filePath.filePath);
+      const displayPath = path.relative(displayRootDir, absoluteFilePath);
 
       const gatheredFileInfo: GatheredInformation = {
         tag: "file",
@@ -113,21 +178,29 @@ export class FilesAgent implements ReconAgent<FilesAgentOptions> {
     return Promise.all(gatheredInformationPromises);
   }
 
-  parseOptions(options: string): FilesAgentOptions {
+  parseOptions(options: string): string[] {
     return options.split(",");
   }
 
-  private parsePatterns(options: FilesAgentOptions) {
-    const inclusionPatterns: string[] = [];
-    const exclusionPatterns: string[] = [];
+  private parsePatterns(options: SourcedFileOption[]) {
+    const inclusionPatterns: FilePattern[] = [];
+    const exclusionPatterns: FilePattern[] = [];
 
     options.forEach((option) => {
-      const path = option;
+      const optionPath = option.path;
 
-      if (path.startsWith("!")) {
-        exclusionPatterns.push(path.slice(1));
+      if (optionPath.startsWith("!")) {
+        exclusionPatterns.push({
+          pattern: optionPath.slice(1),
+          configSource: option.configSource,
+          configDir: option.configDir,
+        });
       } else {
-        inclusionPatterns.push(option);
+        inclusionPatterns.push({
+          pattern: optionPath,
+          configSource: option.configSource,
+          configDir: option.configDir,
+        });
       }
     });
 

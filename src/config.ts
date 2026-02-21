@@ -17,20 +17,26 @@ export interface ReconCommand {
 
 export async function loadConfig(): Promise<{
   config: ReconConfig;
-  configDir?: string;
+  commandConfigDirs: Record<string, string | undefined>;
+  defaultConfigDir?: string;
 }> {
   const homedir = os.homedir();
   const homeConfigPath = path.join(homedir, ".recon.config.mjs");
   let homeConfig: ReconConfig = {};
   let projectConfig: ReconConfig = {};
+  const commandConfigDirs: Record<string, string | undefined> = {};
+  let homeConfigDir: string | undefined;
 
   if (fs.existsSync(homeConfigPath)) {
     homeConfig = (await import(homeConfigPath)).default;
+    homeConfigDir = path.dirname(homeConfigPath);
   }
 
   const projectConfigPath = findProjectConfig(process.cwd());
+  let projectConfigDir: string | undefined;
   if (projectConfigPath) {
     projectConfig = (await import(projectConfigPath)).default;
+    projectConfigDir = path.dirname(projectConfigPath);
   }
 
   const mergedConfig: ReconConfig = {
@@ -51,9 +57,18 @@ export async function loadConfig(): Promise<{
     }
   }
 
+  for (const commandName of Object.keys(homeConfig.commands || {})) {
+    commandConfigDirs[commandName] = homeConfigDir;
+  }
+
+  for (const commandName of Object.keys(projectConfig.commands || {})) {
+    commandConfigDirs[commandName] = projectConfigDir;
+  }
+
   return {
     config: mergedConfig,
-    configDir: projectConfigPath ? path.dirname(projectConfigPath) : undefined,
+    commandConfigDirs,
+    defaultConfigDir: projectConfigDir || homeConfigDir,
   };
 }
 

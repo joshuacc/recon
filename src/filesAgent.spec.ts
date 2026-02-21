@@ -6,16 +6,6 @@ import path from "path";
 
 vi.mock("fs/promises");
 vi.mock("glob");
-vi.mock("path", () => {
-  return {
-    default: {
-      join: vi.fn((...parts) => parts.join("/")),
-      parse: vi.fn(),
-      dirname: vi.fn(),
-      relative: vi.fn(),
-    },
-  };
-});
 
 describe("FilesAgent", () => {
   // Unmocked list of default exclusions to match what is in the actual code
@@ -50,7 +40,7 @@ describe("FilesAgent", () => {
     const expected = [
       {
         tag: "file",
-        attrs: { name: "./docs" },
+        attrs: { name: "docs" },
         content: "File content",
       },
     ];
@@ -72,12 +62,12 @@ describe("FilesAgent", () => {
     const expected = [
       {
         tag: "file",
-        attrs: { name: "./docs/file1" },
+        attrs: { name: "docs/file1" },
         content: "File content",
       },
       {
         tag: "file",
-        attrs: { name: "./docs/file2" },
+        attrs: { name: "docs/file2" },
         content: "File content",
       },
     ];
@@ -172,13 +162,13 @@ describe("FilesAgent", () => {
   });
 
   it("should resolve paths relative to baseDir when provided", async () => {
-    const mockFiles = ["docs/file1.txt", "docs/file2.txt"];
     const baseDir = "/config/dir";
     const inputPath = "./docs/file1.txt";
+    const resolvedPath = path.join(baseDir, inputPath);
 
     vi.mocked(readFile).mockResolvedValue("File content");
     vi.mocked(stat).mockResolvedValue({ isDirectory: () => false } as any);
-    vi.mocked(glob).mockResolvedValue([mockFiles[0]]);
+    vi.mocked(glob).mockResolvedValue([resolvedPath]);
 
     const agent = new FilesAgent();
     const result = await agent.gather([inputPath], {
@@ -186,16 +176,13 @@ describe("FilesAgent", () => {
       configSource: "configFile",
     });
 
-    // Verify path.join was called with baseDir
-    expect(path.join).toHaveBeenCalledWith(baseDir, inputPath);
-
     // Verify the file content was read from the correct path
-    expect(readFile).toHaveBeenCalledWith(`${baseDir}/${inputPath}`, "utf-8");
+    expect(readFile).toHaveBeenCalledWith(resolvedPath, "utf-8");
 
     expect(result).toEqual([
       {
         tag: "file",
-        attrs: { name: inputPath }, // Should preserve original path in output
+        attrs: { name: "docs/file1.txt" },
         content: "File content",
       },
     ]);
@@ -218,7 +205,7 @@ describe("FilesAgent", () => {
     expect(result).toEqual([
       {
         tag: "file",
-        attrs: { name: inputPath },
+        attrs: { name: "docs/file1.txt" },
         content: "File content",
       },
     ]);
@@ -268,6 +255,122 @@ describe("FilesAgent", () => {
     expect(result).toEqual(expected);
   });
 
+  it("should exclude zone identifier files by default", async () => {
+    const mockFiles = [
+      "docs/notes.txt",
+      "docs/notes.txt:Zone.Identifier",
+      "docs/todo.md",
+    ];
+
+    vi.mocked(readFile).mockResolvedValue("File content");
+    vi.mocked(stat).mockImplementation(
+      (filePath) =>
+        Promise.reject(
+          new Error(`No such file or directory: ${String(filePath)}`),
+        ) as any,
+    );
+    vi.mocked(glob).mockImplementation((pattern, options) => {
+      const ignorePatterns = (options.ignore || []) as string[];
+      const shouldIgnoreZoneIdentifier = ignorePatterns.includes(
+        "**/*:Zone.Identifier",
+      );
+
+      return Promise.resolve(
+        mockFiles.filter((filePath) => {
+          if (
+            shouldIgnoreZoneIdentifier &&
+            filePath.endsWith(":Zone.Identifier")
+          ) {
+            return false;
+          }
+
+          return true;
+        }),
+      );
+    });
+
+    const agent = new FilesAgent();
+    const result = await agent.gather(["./docs/**"], { configSource: "cli" });
+
+    expect(result).toEqual([
+      {
+        tag: "file",
+        attrs: { name: "docs/notes.txt" },
+        content: "File content",
+      },
+      {
+        tag: "file",
+        attrs: { name: "docs/todo.md" },
+        content: "File content",
+      },
+    ]);
+  });
+
+  it("should treat directory exclusions as recursive ignore patterns", async () => {
+    vi.mocked(readFile).mockResolvedValue("File content");
+    vi.mocked(stat).mockImplementation(async (filePath) => {
+      if (filePath === "./docs" || filePath === "docs/private") {
+        return { isDirectory: () => true } as any;
+      }
+
+      throw new Error(`Unexpected stat path: ${String(filePath)}`);
+    });
+    vi.mocked(glob).mockResolvedValue(["docs/file1.txt"]);
+
+    const agent = new FilesAgent();
+    const result = await agent.gather(["./docs", "!docs/private"], {
+      configSource: "cli",
+    });
+
+    expect(result).toEqual([
+      {
+        tag: "file",
+        attrs: { name: "docs/file1.txt" },
+        content: "File content",
+      },
+    ]);
+    expect(glob).toHaveBeenCalledWith(
+      path.join("./docs", "**", "*"),
+      expect.objectContaining({
+        ignore: expect.arrayContaining(["docs/private/**"]),
+      }),
+    );
+  });
+
+  it("should resolve config directory exclusions relative to config root", async () => {
+    const configDir = "/config";
+
+    vi.mocked(readFile).mockResolvedValue("File content");
+    vi.mocked(stat).mockImplementation(async (filePath) => {
+      if (filePath === "/config/docs" || filePath === "/config/secret") {
+        return { isDirectory: () => true } as any;
+      }
+
+      throw new Error(`Unexpected stat path: ${String(filePath)}`);
+    });
+    vi.mocked(glob).mockResolvedValue(["/config/docs/a.md"]);
+
+    const agent = new FilesAgent();
+    const result = await agent.gather(["./docs", "!./secret"], {
+      configSource: "configFile",
+      configDir,
+    });
+
+    expect(result).toEqual([
+      {
+        tag: "file",
+        attrs: { name: "docs/a.md" },
+        content: "File content",
+      },
+    ]);
+    expect(glob).toHaveBeenCalledWith(
+      path.join("/config/docs", "**", "*"),
+      expect.objectContaining({
+        ignore: expect.arrayContaining(["/config/secret/**"]),
+      }),
+    );
+  });
+
   // New test to demonstrate the bug with command line paths being treated relative to config dir
   it("should not resolve command line paths relative to config dir", async () => {
     const mockFiles = ["docs/file1.txt"];
@@ -289,7 +392,7 @@ describe("FilesAgent", () => {
     expect(cliResult).toEqual([
       {
         tag: "file",
-        attrs: { name: cliPath },
+        attrs: { name: "docs/file1.txt" },
         content: "File content",
       },
     ]);
@@ -301,14 +404,94 @@ describe("FilesAgent", () => {
       configDir,
       configSource: "configFile",
     });
-    expect(readFile).toHaveBeenCalledWith(`${configDir}/${cliPath}`, "utf-8");
+    expect(readFile).toHaveBeenCalledWith(
+      path.join(configDir, cliPath),
+      "utf-8",
+    );
     expect(configResult).toEqual([
       {
         tag: "file",
-        attrs: { name: cliPath },
+        attrs: { name: "docs/file1.txt" },
         content: "File content",
       },
     ]);
+  });
+
+  it("should display expanded config glob matches relative to config dir", async () => {
+    const configDir = "/config";
+
+    vi.mocked(readFile).mockResolvedValue("File content");
+    vi.mocked(stat).mockResolvedValue({ isDirectory: () => true } as any);
+    vi.mocked(glob).mockResolvedValue([
+      "/config/docs/file1.txt",
+      "/config/docs/file2.txt",
+    ]);
+
+    const agent = new FilesAgent();
+    const result = await agent.gather(["./docs"], {
+      configDir,
+      configSource: "configFile",
+    });
+
+    expect(result).toEqual([
+      {
+        tag: "file",
+        attrs: { name: "docs/file1.txt" },
+        content: "File content",
+      },
+      {
+        tag: "file",
+        attrs: { name: "docs/file2.txt" },
+        content: "File content",
+      },
+    ]);
+  });
+
+  it("should preserve source-specific path resolution for mixed file options", async () => {
+    const configDir = "/config";
+    const expectedCliDisplayPath = path.relative(
+      configDir,
+      path.resolve("./local.md"),
+    );
+
+    vi.mocked(readFile).mockResolvedValue("File content");
+    vi.mocked(stat).mockImplementation(async (filePath) => {
+      if (filePath === "/config/docs") {
+        return { isDirectory: () => true } as any;
+      }
+
+      if (filePath === "./local.md") {
+        return { isDirectory: () => false } as any;
+      }
+
+      throw new Error(`Unexpected stat path: ${String(filePath)}`);
+    });
+    vi.mocked(glob).mockResolvedValue(["/config/docs/a.md"]);
+
+    const agent = new FilesAgent();
+    const result = await agent.gather(
+      [
+        { path: "./docs", configSource: "configFile", configDir },
+        { path: "./local.md", configSource: "cli" },
+      ],
+      { configDir, configSource: "cli" },
+    );
+
+    expect(result).toEqual([
+      {
+        tag: "file",
+        attrs: { name: "docs/a.md" },
+        content: "File content",
+      },
+      {
+        tag: "file",
+        attrs: { name: expectedCliDisplayPath },
+        content: "File content",
+      },
+    ]);
+
+    expect(readFile).toHaveBeenCalledWith("/config/docs/a.md", "utf-8");
+    expect(readFile).toHaveBeenCalledWith("./local.md", "utf-8");
   });
 
   afterEach(() => {
