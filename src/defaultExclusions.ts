@@ -77,6 +77,8 @@ export const defaultExclusions = [
   "**/*.njsproj",
   "**/*.sln",
   "**/*.sw?",
+  // WSL zone identifier metadata files
+  "**/*:Zone.Identifier",
 
   // Common non-text file types
   "**/*.png",
@@ -110,4 +112,9 @@ export const defaultExclusions = [
   "**/*.ai",
   "**/*.sketch",
   "**/*.fig",
+  "**/*.woff",
+  "**/*.woff2",
+  "**/*.eot",
+  "**/*.ttf",
+  "**/*.otf",
 ];

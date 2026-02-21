@@ -255,6 +255,57 @@ describe("FilesAgent", () => {
     expect(result).toEqual(expected);
   });
 
+  it("should exclude zone identifier files by default", async () => {
+    const mockFiles = [
+      "docs/notes.txt",
+      "docs/notes.txt:Zone.Identifier",
+      "docs/todo.md",
+    ];
+
+    vi.mocked(readFile).mockResolvedValue("File content");
+    vi.mocked(stat).mockImplementation(
+      (filePath) =>
+        Promise.reject(
+          new Error(`No such file or directory: ${String(filePath)}`),
+        ) as any,
+    );
+    vi.mocked(glob).mockImplementation((pattern, options) => {
+      const ignorePatterns = (options.ignore || []) as string[];
+      const shouldIgnoreZoneIdentifier = ignorePatterns.includes(
+        "**/*:Zone.Identifier",
+      );
+
+      return Promise.resolve(
+        mockFiles.filter((filePath) => {
+          if (
+            shouldIgnoreZoneIdentifier &&
+            filePath.endsWith(":Zone.Identifier")
+          ) {
+            return false;
+          }
+
+          return true;
+        }),
+      );
+    });
+
+    const agent = new FilesAgent();
+    const result = await agent.gather(["./docs/**"], { configSource: "cli" });
+
+    expect(result).toEqual([
+      {
+        tag: "file",
+        attrs: { name: "docs/notes.txt" },
+        content: "File content",
+      },
+      {
+        tag: "file",
+        attrs: { name: "docs/todo.md" },
+        content: "File content",
+      },
+    ]);
+  });
+
   it("should treat directory exclusions as recursive ignore patterns", async () => {
     vi.mocked(readFile).mockResolvedValue("File content");
     vi.mocked(stat).mockImplementation(async (filePath) => {
