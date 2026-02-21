@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 import { gatherInformation } from "./gatherInformation.js";
-import { loadConfig, ReconCommand } from "./config.js";
+import { loadConfig } from "./config.js";
 import { writeToFile } from "./fileWriter.js";
 import { FilesAgent } from "./filesAgent.js";
 import { UrlsAgent } from "./urlsAgent.js";
 import { ReconAgent } from "./reconAgent.js";
 import { NotesAgent } from "./notesAgent.js";
 import { FunctionAgent } from "./functionAgent.js";
+import { mergeCommandConfigWithCli } from "./mergeCommandConfig.js";
 
 const program = new Command();
 
@@ -26,7 +27,7 @@ program
       return;
     }
 
-    const { config, configDir } = await loadConfig();
+    const { config, commandConfigDirs, defaultConfigDir } = await loadConfig();
 
     const { commands } = config;
 
@@ -38,42 +39,17 @@ program
       commandConfig = { prompt: options.prompt, gather: {} };
     }
 
-    if (options.prompt) {
-      commandConfig.prompt = options.prompt;
-    }
-
-    // Create a new command config that includes both config file and CLI options
-    const mergedConfig: ReconCommand = {
-      ...commandConfig,
-      gather: { ...commandConfig.gather },
-    };
-
-    // Create a map to track the source of each agent's options
-    const optionsSourceMap: Record<string, "configFile" | "cli"> = {
-      files: "configFile",
-      urls: "configFile",
-    };
-
     const filesAgent = new FilesAgent();
-    if (options.files) {
-      // CLI options are not from config
-      mergedConfig.gather.files = filesAgent.parseOptions(options.files);
-      optionsSourceMap["files"] = "cli"; // CLI options
-    }
-
     const urlsAgent = new UrlsAgent();
-    if (options.urls) {
-      // CLI options are not from config
-      mergedConfig.gather.urls = urlsAgent.parseOptions(options.urls);
-      optionsSourceMap["urls"] = "cli"; // CLI options
-    }
-
-    // Mark config file options with 'configFile'
-    for (const agentName in mergedConfig.gather) {
-      if (!optionsSourceMap[agentName]) {
-        optionsSourceMap[agentName] = "configFile"; // Config file options
-      }
-    }
+    const commandConfigDir =
+      (command ? commandConfigDirs[command] : undefined) || defaultConfigDir;
+    const { mergedConfig, optionsSourceMap } = mergeCommandConfigWithCli(
+      commandConfig,
+      options,
+      filesAgent,
+      urlsAgent,
+      commandConfigDir,
+    );
 
     const agents: ReconAgent<unknown>[] = [
       filesAgent,
@@ -87,7 +63,7 @@ program
       agents,
       mergedConfig,
       optionsSourceMap,
-      configDir,
+      commandConfigDir,
     );
 
     let outputMethods = 0;
