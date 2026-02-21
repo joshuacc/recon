@@ -255,6 +255,71 @@ describe("FilesAgent", () => {
     expect(result).toEqual(expected);
   });
 
+  it("should treat directory exclusions as recursive ignore patterns", async () => {
+    vi.mocked(readFile).mockResolvedValue("File content");
+    vi.mocked(stat).mockImplementation(async (filePath) => {
+      if (filePath === "./docs" || filePath === "docs/private") {
+        return { isDirectory: () => true } as any;
+      }
+
+      throw new Error(`Unexpected stat path: ${String(filePath)}`);
+    });
+    vi.mocked(glob).mockResolvedValue(["docs/file1.txt"]);
+
+    const agent = new FilesAgent();
+    const result = await agent.gather(["./docs", "!docs/private"], {
+      configSource: "cli",
+    });
+
+    expect(result).toEqual([
+      {
+        tag: "file",
+        attrs: { name: "docs/file1.txt" },
+        content: "File content",
+      },
+    ]);
+    expect(glob).toHaveBeenCalledWith(
+      path.join("./docs", "**", "*"),
+      expect.objectContaining({
+        ignore: expect.arrayContaining(["docs/private/**"]),
+      }),
+    );
+  });
+
+  it("should resolve config directory exclusions relative to config root", async () => {
+    const configDir = "/config";
+
+    vi.mocked(readFile).mockResolvedValue("File content");
+    vi.mocked(stat).mockImplementation(async (filePath) => {
+      if (filePath === "/config/docs" || filePath === "/config/secret") {
+        return { isDirectory: () => true } as any;
+      }
+
+      throw new Error(`Unexpected stat path: ${String(filePath)}`);
+    });
+    vi.mocked(glob).mockResolvedValue(["/config/docs/a.md"]);
+
+    const agent = new FilesAgent();
+    const result = await agent.gather(["./docs", "!./secret"], {
+      configSource: "configFile",
+      configDir,
+    });
+
+    expect(result).toEqual([
+      {
+        tag: "file",
+        attrs: { name: "docs/a.md" },
+        content: "File content",
+      },
+    ]);
+    expect(glob).toHaveBeenCalledWith(
+      path.join("/config/docs", "**", "*"),
+      expect.objectContaining({
+        ignore: expect.arrayContaining(["/config/secret/**"]),
+      }),
+    );
+  });
+
   // New test to demonstrate the bug with command line paths being treated relative to config dir
   it("should not resolve command line paths relative to config dir", async () => {
     const mockFiles = ["docs/file1.txt"];

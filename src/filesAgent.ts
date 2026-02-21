@@ -75,11 +75,11 @@ export class FilesAgent implements ReconAgent<FilesAgentOptions> {
     inclusionPatterns: FilePattern[],
     exclusionPatterns: FilePattern[],
   ): Promise<MatchedFilePath[]> {
+    const resolvedExclusions =
+      await this.resolveExclusionPatterns(exclusionPatterns);
+
     const filePathPromises = inclusionPatterns.map(async (pattern) => {
       const resolvedPattern = this.resolvePattern(pattern);
-      const resolvedExclusions = exclusionPatterns.map((exclusionPattern) =>
-        this.resolvePattern(exclusionPattern),
-      );
 
       try {
         const fileStats = await stat(resolvedPattern);
@@ -118,6 +118,30 @@ export class FilesAgent implements ReconAgent<FilesAgentOptions> {
 
     const filePaths = await Promise.all(filePathPromises);
     return filePaths.flat();
+  }
+
+  private async resolveExclusionPatterns(
+    exclusionPatterns: FilePattern[],
+  ): Promise<string[]> {
+    const resolvedExclusions = await Promise.all(
+      exclusionPatterns.map(async (pattern) => {
+        const resolvedPattern = this.resolvePattern(pattern);
+
+        try {
+          const exclusionStats = await stat(resolvedPattern);
+          if (exclusionStats.isDirectory()) {
+            // Treat directory exclusions like inverse directory inclusions.
+            return path.join(resolvedPattern, "**");
+          }
+        } catch {
+          // If the path doesn't exist, keep the exclusion as a glob pattern.
+        }
+
+        return resolvedPattern;
+      }),
+    );
+
+    return resolvedExclusions;
   }
 
   private resolvePattern(pattern: FilePattern): string {
